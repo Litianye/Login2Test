@@ -19,7 +19,7 @@ import okhttp3.Response;
 
 public class OkHttpUtil {
     public static boolean result = false;
-    public static String weatherJSON, loginStr, loctionStr;
+    public static String weatherJSON, loginStr ="0", loctionStr;
     public static OkHttpClient client = new OkHttpClient();
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
@@ -28,8 +28,42 @@ public class OkHttpUtil {
      */
 
     public static boolean LoginPostParams(String url, final String account, final String password) {
-        RequestBody body = new FormBody.Builder().add("username", account)
+        RequestBody body = new FormBody.Builder().add("phoneNumber", account)
                                                 .add("password", password).build();
+
+        Request request = new Request.Builder().url(url).post(body).build();
+        Log.i("request",request.toString());
+        Call call = client.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+            }
+
+            @Override
+            public void onResponse(Call call, final Response response) throws IOException {
+                loginStr = response.body().string();
+                System.out.println(loginStr+";;");
+                if (response.isSuccessful()) {
+                    Log.w("toString", response.toString());
+                    Log.i("200", "httpGet OK: " + account+","+password +"," + loginStr);
+                    setResult(true);
+                } else {
+                    Log.i("!200", "httpGet error: " + account+","+password +","+ loginStr);
+                    Log.w("toString", response.toString());
+                    setResult(false);
+                }
+            }
+        });
+        return result;
+    }
+
+    /**
+     * Post键值对
+     */
+
+    public static boolean RegisterPostParams(String url, final String account, final String password) {
+        RequestBody body = new FormBody.Builder().add("phoneNumber", account)
+                .add("password", password).build();
 
         Request request = new Request.Builder().url(url).post(body).build();
         Log.i("request",request.toString());
@@ -55,6 +89,7 @@ public class OkHttpUtil {
         });
         return result;
     }
+
 
     public static boolean postLocParams(String url, String account, String devID,
                                         String loc) {

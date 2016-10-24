@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -20,7 +21,6 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import learn.li.login2test.R;
-import learn.li.login2test.healthCard.healthFragment;
 import learn.li.login2test.locationUtils.locationFragment;
 import learn.li.login2test.settingPackage.settingFragment;
 import learn.li.login2test.infoFragment.healthCardActivity;
@@ -28,25 +28,23 @@ import learn.li.login2test.infoFragment.healthCardActivity;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
 
-    private static String account="0", email="0";
-    private healthFragment healthFragment;
+    private static String account="0", phone="0";
     private locationFragment locationFragment;
     private settingFragment settingFragment;
     private testFragment testFragment;
 
     private FragmentManager fragmentManager;
-    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        Intent intent=getIntent();
-//        account = intent.getStringExtra("account");
-//        email = intent.getStringExtra("email");
-//        Log.i("account", account);
-//        Log.i("email", email);
+        Intent intent=getIntent();
+        account = intent.getStringExtra("name");
+        phone = intent.getStringExtra("phone");
+        Log.i("name", account);
+        Log.i("phone", phone);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -73,7 +71,7 @@ public class MainActivity extends AppCompatActivity
         TextView mAccount = (TextView) headerView.findViewById(R.id.nav_tv_header_username);
         TextView mEmail = (TextView) headerView.findViewById(R.id.nav_tv_header_userInfo);
         mAccount.setText(account);
-        mEmail.setText(email);
+        mEmail.setText(phone);
 
         //  初始化界面管理器
         fragmentManager = getFragmentManager();
@@ -127,6 +125,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_slideshow) {
 
             Intent intent=new Intent();
+
+            intent.putExtra("name", "李晨曦");
+            intent.putExtra("phone", phone);
             //从此activity传到另一Activity
             intent.setClass(MainActivity.this, healthCardActivity.class);
             //启动另一个Activity
@@ -154,7 +155,6 @@ public class MainActivity extends AppCompatActivity
 
     private static final int REQUEST_CODE_FIRST = 0;
     private static final int REQUEST_CODE_LOCATION = 1;
-    private static final int REQUEST_CODE_HEALTH = 2;
     private static final int REQUEST_CODE_SETTING = 3;
 
     private void setTabSelection(int index) {
@@ -183,15 +183,6 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
 
-            case REQUEST_CODE_HEALTH:
-                if (healthFragment == null){
-                    healthFragment= new healthFragment();
-                    transaction.add(R.id.id_content, healthFragment);
-                } else {
-                    transaction.show(healthFragment);
-                }
-                break;
-
             case REQUEST_CODE_SETTING:
                 if (settingFragment == null){
                     settingFragment = new settingFragment();
@@ -208,10 +199,6 @@ public class MainActivity extends AppCompatActivity
     private void hideFragments(FragmentTransaction transaction){
         if (testFragment != null){
             transaction.hide(testFragment);
-        }
-
-        if (healthFragment != null){
-            transaction.hide(healthFragment);
         }
 
         if (locationFragment != null){

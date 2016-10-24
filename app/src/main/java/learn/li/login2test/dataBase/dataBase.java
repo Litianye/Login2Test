@@ -13,6 +13,8 @@ public class DataBase extends SQLiteOpenHelper {
     public static final String TABLE_NAME_ACCOUNT = "account";
     public static final String COLUMN_NAME_ITEMNAME = "itemName";
     public static final String COLUMN_NAME_INFORMATION = "information";
+    public static final String COLUMN_NAME_PHONE = "phoneNumber";
+    public static final String COLUMN_NAME_PASSWORD = "password";
     public static final String COLUMN_NAME_ID = "_id";
 
     public DataBase(Context context, String tableName) {
@@ -22,11 +24,17 @@ public class DataBase extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         Log.i("listItem","creating");
-        String sql = "create table if not exists " +TABLE_NAME_LISTITEM+"("+
+        String sqlItem = "create table if not exists " +TABLE_NAME_LISTITEM+"("+
                 COLUMN_NAME_ID+" integer primary key autoincrement,"+
                 COLUMN_NAME_ITEMNAME+" varchar(20) not null default \"0\"," +
                 COLUMN_NAME_INFORMATION+" text not null default \"0\""+")";
-        db.execSQL(sql);
+        db.execSQL(sqlItem);
+
+        Log.i("database","creating");
+        String sqlAccount = "create table if not exists " +TABLE_NAME_ACCOUNT+"("+
+                COLUMN_NAME_PHONE+" varchar(20) not null default \"0\"," +
+                COLUMN_NAME_PASSWORD+" text not null default \"0\""+")";
+        db.execSQL(sqlAccount);
 
     }
 

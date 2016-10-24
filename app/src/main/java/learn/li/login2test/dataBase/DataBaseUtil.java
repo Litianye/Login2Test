@@ -30,15 +30,32 @@ public class DataBaseUtil {
 
 
     //更新到数据库
-    public static void updateInsql(String tableName, Context context, String account, String password){
+    public static void updateInsqltoItem(String tableName, Context context, String attr, String type){
         DataBase db = new DataBase(context, tableName);
         //取得一个只读的数据库对象
         SQLiteDatabase dbS = db.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put("password", password);
-        dbS.update(tableName, values, "account", new String[]{account});
-        Log.i("update","query-->"+account+":"+password);
+        values.put(DataBase.COLUMN_NAME_INFORMATION, attr);
+        dbS.update(tableName, values, DataBase.COLUMN_NAME_ID+"=?", new String[]{""+type});
+        Log.i("update","query-->"+type+":"+attr);
+    }
+
+    //保存到数据库
+    public static void insertInSqltoAccount(String tableName, Context context, String attr1, String attr2){
+        DataBase db = new DataBase(context, tableName);
+        //取得一个可写的数据库对象
+        SQLiteDatabase dbS = db.getWritableDatabase();
+
+        //创建存放数据的ContentValues对象
+        ContentValues values = new ContentValues();
+        //像ContentValues中存放数据
+        values.put(DataBase.COLUMN_NAME_PHONE, attr1);
+        values.put(DataBase.COLUMN_NAME_PASSWORD, attr2);
+        //数据库执行插入命令
+        dbS.insert(tableName, null, values);
+
+        Log.i("insert","query-->"+tableName+":"+attr1+";"+attr2);
     }
 
     //查询数据库
