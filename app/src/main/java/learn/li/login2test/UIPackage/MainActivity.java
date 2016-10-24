@@ -3,11 +3,11 @@ package learn.li.login2test.UIPackage;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -23,6 +23,7 @@ import learn.li.login2test.R;
 import learn.li.login2test.healthCard.healthFragment;
 import learn.li.login2test.locationUtils.locationFragment;
 import learn.li.login2test.settingPackage.settingFragment;
+import learn.li.login2test.infoFragment.healthCardActivity;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
@@ -124,28 +125,17 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_gallery) {
             setTabSelection(REQUEST_CODE_LOCATION);
         } else if (id == R.id.nav_slideshow) {
-            setTabSelection(REQUEST_CODE_HEALTH);
+
+            Intent intent=new Intent();
+            //从此activity传到另一Activity
+            intent.setClass(MainActivity.this, healthCardActivity.class);
+            //启动另一个Activity
+            MainActivity.this.startActivity(intent);
+            MainActivity.this.finish();
+
         } else if (id == R.id.nav_manage) {
             setTabSelection(REQUEST_CODE_SETTING);
         } else if (id == R.id.nav_share) {
-            if (!bluetoothAdapter.isEnabled()) {
-                bluetoothAdapter.enable();//异步的，不会等待结果，直接返回。
-                Log.i("开启","OK");
-            }else{
-                Log.i("搜索","OK");
-//                //判断是否有权限
-//                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-//                        != PackageManager.PERMISSION_GRANTED) {
-//                    //请求权限
-//                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-//                            MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
-//                    //判断是否需要 向用户解释，为什么要申请该权限
-//                    if(ActivityCompat.shouldShowRequestPermissionRationale(this,
-//                            Manifest.permission.READ_CONTACTS)) {
-//                        Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_SHORT).show();
-//                    }
-//                }
-            }
 
         } else if (id == R.id.nav_send) {
 

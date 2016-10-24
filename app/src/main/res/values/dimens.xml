@@ -7,6 +7,8 @@
     <dimen name="nav_header_height">160dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
 
+    <dimen name="half_of_common_dimen">8dp</dimen>
+
     //Amap Demo
     <dimen name="title_text_size">15sp</dimen>
     <dimen name="city_name_size">20sp</dimen>
@@ -31,4 +33,6 @@
     <dimen name="margin_left">15dp</dimen>
     <dimen name="margin_right">15dp</dimen>
     <dimen name="margin_middle">2dp</dimen>
+    <dimen name="app_bar_height">180dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
 </resources>
