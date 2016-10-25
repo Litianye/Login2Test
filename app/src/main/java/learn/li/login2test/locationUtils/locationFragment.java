@@ -174,7 +174,7 @@ public class locationFragment extends Fragment implements View.OnClickListener{
      * 停止定位
      */
     private void stopLocation(){
-        // 停止定位
+        // 停止定位啊
         locationClient.stopLocation();
     }
 

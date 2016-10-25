@@ -1,0 +1,32 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/half_of_common_dimen"
+    android:paddingLeft="@dimen/half_of_common_dimen"
+    android:paddingRight="@dimen/half_of_common_dimen"
+    android:paddingTop="@dimen/half_of_common_dimen"
+    tools:context="learn.li.login2test.EEG.EEGFragment"
+    android:orientation="vertical"
+    android:weightSum="1">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:background="@color/white"/>
+
+    <learn.li.login2test.RoundIndicator.RoundIndicatorView
+        android:id="@+id/rdIndicator"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.55" />
+
+    <TextView
+        android:id="@+id/tvData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/device_information"
+        android:layout_gravity="bottom"
+        android:layout_weight="0.45"/>
+
+</LinearLayout>
