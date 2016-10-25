@@ -15,6 +15,7 @@ import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 
+import learn.li.login2test.OkHttpUtil;
 import learn.li.login2test.R;
 import learn.li.login2test.Utils;
 
@@ -35,7 +36,7 @@ public class locationFragment extends Fragment implements View.OnClickListener{
     private AMapLocationClient locationClient = null;
     private AMapLocationClientOption locationOption = new AMapLocationClientOption();
 
-    private TextView tvReult;
+    private TextView tvResult;
     private Button btLocation;
 
     // TODO: Rename and change types of parameters
@@ -43,6 +44,7 @@ public class locationFragment extends Fragment implements View.OnClickListener{
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+    private String locationUrl = "http://192.168.50.199:8080/Mojito/user/location.do";
 
     public locationFragment() {
         // Required empty public constructor
@@ -80,10 +82,10 @@ public class locationFragment extends Fragment implements View.OnClickListener{
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_location, container, false);
-        tvReult = (TextView) view.findViewById(R.id.tv_result);
+        tvResult = (TextView) view.findViewById(R.id.tv_result);
         btLocation = (Button) view.findViewById(R.id.bt_location);
 
-        btLocation.setOnClickListener(this);
+        btLocation.setOnClickListener(this);//点击事件
 
         initLocation();
 
@@ -92,10 +94,6 @@ public class locationFragment extends Fragment implements View.OnClickListener{
 
     /**
      * 初始化定位
-     *
-     * @since 2.8.0
-     * @author hongming.wang
-     *
      */
     private void initLocation(){
         //初始化client
@@ -108,20 +106,17 @@ public class locationFragment extends Fragment implements View.OnClickListener{
 
     /**
      * 默认的定位参数
-     * @since 2.8.0
-     * @author hongming.wang
-     *
      */
     private AMapLocationClientOption getDefaultOption(){
         AMapLocationClientOption mOption = new AMapLocationClientOption();
-        mOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);//可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
-        mOption.setGpsFirst(false);//可选，设置是否gps优先，只在高精度模式下有效。默认关闭
-        mOption.setHttpTimeOut(30000);//可选，设置网络请求超时时间。默认为30秒。在仅设备模式下无效
-        mOption.setInterval(2000);//可选，设置定位间隔。默认为2秒
-        mOption.setNeedAddress(true);//可选，设置是否返回逆地理地址信息。默认是ture
-        mOption.setOnceLocation(false);//可选，设置是否单次定位。默认是false
-        mOption.setOnceLocationLatest(false);//可选，设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
-        AMapLocationClientOption.setLocationProtocol(AMapLocationClientOption.AMapLocationProtocol.HTTP);//可选， 设置网络请求的协议。可选HTTP或者HTTPS。默认为HTTP
+        mOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);//设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
+        mOption.setGpsFirst(false);//设置是否gps优先，只在高精度模式下有效。默认关闭
+        mOption.setHttpTimeOut(30000);//设置网络请求超时时间。默认为30秒。在仅设备模式下无效
+        mOption.setInterval(3000);//设置定位间隔。默认为3秒
+        mOption.setNeedAddress(true);//设置是否返回逆地理地址信息。默认是ture
+        mOption.setOnceLocation(false);//设置是否单次定位。默认是false
+        mOption.setOnceLocationLatest(false);//设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
+        AMapLocationClientOption.setLocationProtocol(AMapLocationClientOption.AMapLocationProtocol.HTTP);//设置网络请求的协议。可选HTTP或者HTTPS。默认为HTTP
         return mOption;
     }
 
@@ -134,9 +129,9 @@ public class locationFragment extends Fragment implements View.OnClickListener{
             if (null != loc) {
                 //解析定位结果
                 String result = Utils.getLocationStr(loc);
-                tvReult.setText(result);
+                tvResult.setText(result);
             } else {
-                tvReult.setText("定位失败，loc is null");
+                tvResult.setText("定位失败，loc is null");
             }
         }
     };
@@ -148,23 +143,25 @@ public class locationFragment extends Fragment implements View.OnClickListener{
                     getResources().getString(R.string.startLocation))) {
                 btLocation.setText(getResources().getString(
                         R.string.stopLocation));
-                tvReult.setText("正在定位...");
+                tvResult.setText("正在定位...");
                 startLocation();
             } else {
                 btLocation.setText(getResources().getString(
                         R.string.startLocation));
                 stopLocation();
-                tvReult.setText("定位停止");
+                tvResult.setText("定位停止");
             }
+            //发送经纬度
+            AMapLocation location = locationClient.getLastKnownLocation();
+            String longitude = String.valueOf(location.getLongitude());
+            String latitude = String.valueOf(location.getLatitude());
+            OkHttpUtil.postLocationParams(locationUrl,longitude,latitude);
+            tvResult.append("\n"+longitude+";"+latitude);
         }
     }
 
     /**
      * 开始定位
-     *
-     * @since 2.8.0
-     * @author hongming.wang
-     *
      */
     private void startLocation(){
         // 设置定位参数
@@ -175,10 +172,6 @@ public class locationFragment extends Fragment implements View.OnClickListener{
 
     /**
      * 停止定位
-     *
-     * @since 2.8.0
-     * @author hongming.wang
-     *
      */
     private void stopLocation(){
         // 停止定位
@@ -192,16 +185,6 @@ public class locationFragment extends Fragment implements View.OnClickListener{
         }
     }
 
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
-//    }
 
     @Override
     public void onDetach() {

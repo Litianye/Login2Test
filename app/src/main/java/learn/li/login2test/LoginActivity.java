@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import learn.li.login2test.UIPackage.MainActivity;
+import learn.li.login2test.dataBase.DataBase;
+import learn.li.login2test.dataBase.DataBaseUtil;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -68,14 +70,18 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
 
+    private DataBase dataBase;
+    private String realName, phone, password, historyInfo;
+    private String[] pieces;
+
     private String loginUrl = "http://192.168.50.199:8080/Mojito/user/login.do";
-    private String register = "http://192.168.50.199:8080/Mojito/user/register.do";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         // Set up the login form.
+        dataBase = new DataBase(LoginActivity.this, DataBase.TABLE_NAME_ACCOUNT);
         mPhoneView = (AutoCompleteTextView) findViewById(R.id.login_phone);
         mPhoneView.setInputType(InputType.TYPE_CLASS_PHONE);
         populateAutoComplete();
@@ -93,11 +99,44 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
-        Button mEmailSignInButton = (Button) findViewById(R.id.btn_sign_in);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
+        if(!DataBaseUtil.isEmpty(DataBase.TABLE_NAME_ACCOUNT, LoginActivity.this)){
+//            Log.i("path", fileName);
+            historyInfo = DataBaseUtil.readFirstInSql(DataBase.TABLE_NAME_ACCOUNT, LoginActivity.this);
+            for (int i=0; i<3; i++) {
+                pieces = historyInfo.split(":");
+            }
+            signIn(pieces[1], pieces[2]);
+
+            Toast.makeText(getApplicationContext(), "历史账号 "+pieces[0]+" 登陆成功！", Toast.LENGTH_SHORT).show();
+            Intent intent=new Intent();
+            //键值对
+            intent.putExtra("name", pieces[0]);
+            intent.putExtra("phone", pieces[1]);
+            //从此activity传到另一Activity
+            intent.setClass(LoginActivity.this, MainActivity.class);
+            //启动另一个Activity
+            LoginActivity.this.startActivity(intent);
+            LoginActivity.this.finish();
+        }
+
+        Button mSignInButton = (Button) findViewById(R.id.btn_sign_in);
+        mSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 attemptLogin();
+            }
+        });
+
+        Button mRegisterButton = (Button) findViewById(R.id.btn_register);
+        mRegisterButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent();
+                //从此activity传到另一Activity
+                intent.setClass(LoginActivity.this, RegisterActivity.class);
+                //启动另一个Activity
+                LoginActivity.this.startActivity(intent);
+                LoginActivity.this.finish();
             }
         });
 
@@ -335,7 +374,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 Toast.makeText(getApplicationContext(), "登陆成功！", Toast.LENGTH_SHORT).show();
                 Intent intent=new Intent();
                 //键值对
-                intent.putExtra("name", "李晨曦");
+                intent.putExtra("name", "未知");
                 intent.putExtra("phone", mPhone);
                 //从此activity传到另一Activity
                 intent.setClass(LoginActivity.this, MainActivity.class);

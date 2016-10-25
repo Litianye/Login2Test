@@ -42,7 +42,8 @@ public class DataBaseUtil {
     }
 
     //保存到数据库
-    public static void insertInSqltoAccount(String tableName, Context context, String attr1, String attr2){
+    public static void insertInSqltoAccount(String tableName, Context context,
+                                            String realName, String phone, String password){
         DataBase db = new DataBase(context, tableName);
         //取得一个可写的数据库对象
         SQLiteDatabase dbS = db.getWritableDatabase();
@@ -50,12 +51,13 @@ public class DataBaseUtil {
         //创建存放数据的ContentValues对象
         ContentValues values = new ContentValues();
         //像ContentValues中存放数据
-        values.put(DataBase.COLUMN_NAME_PHONE, attr1);
-        values.put(DataBase.COLUMN_NAME_PASSWORD, attr2);
+        values.put(DataBase.COLUMN_NAME_REALNAME,realName);
+        values.put(DataBase.COLUMN_NAME_PHONE, phone);
+        values.put(DataBase.COLUMN_NAME_PASSWORD, password);
         //数据库执行插入命令
         dbS.insert(tableName, null, values);
 
-        Log.i("insert","query-->"+tableName+":"+attr1+";"+attr2);
+        Log.i("insert","query-->"+tableName+":"+realName+":"+phone+";"+password);
     }
 
     //查询数据库
@@ -78,7 +80,8 @@ public class DataBaseUtil {
 
     //查询数据库第一条
     public static String readFirstInSql(String tableName, Context context){
-        String account_out = "";
+        String name_out = "";
+        String phone_out = "";
         String password_out = "";
         DataBase db = new DataBase(context, tableName);
         //取得一个可读的数据库对象
@@ -87,11 +90,12 @@ public class DataBaseUtil {
 
         Cursor c = dbS.query(tableName, null, null, null, null, null, null);//查询并获得游标
         c.moveToFirst();
-        account_out = c.getString(c.getColumnIndex("account"));
+        name_out = c.getString(c.getColumnIndex("realName"));
+        phone_out = c.getString(c.getColumnIndex("phoneNumber"));
         password_out = c.getString(c.getColumnIndex("password"));
         //日志打印输出
-        Log.i("readFirst", "query-->" + account_out+":"+password_out);
-        return account_out + ":" + password_out;
+        Log.i("readFirst", "query-->" + name_out+":"+ phone_out+":"+ password_out);
+        return name_out+":"+ phone_out+":"+ password_out;
     }
 
     //删除数据

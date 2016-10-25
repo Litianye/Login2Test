@@ -124,17 +124,9 @@ public class OkHttpUtil {
         return result;
     }
 
-    public static boolean postMoreParams(String url, final String account, final String devID,
-                                         final String temp, final String hum, final String air,
-                                         final boolean fire, final boolean gas, final boolean ir) {
-        RequestBody body = new FormBody.Builder().add("username", account)
-                                                 .add("devID", devID)
-                                                 .add("temp", temp)
-                                                 .add("hum", hum)
-                                                 .add("air", air)
-                                                 .add("fire", String.valueOf(fire))
-                                                 .add("gas", String.valueOf(gas))
-                                                 .add("ir", String.valueOf(ir))
+    public static boolean postLocationParams(String url, final String longitude, final String latitude) {
+        RequestBody body = new FormBody.Builder().add("x", longitude)
+                                                 .add("y", latitude)
                                                  .build();
         Request request = new Request.Builder().url(url).post(body).build();
         Log.i("request",request.toString());

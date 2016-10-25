@@ -5,16 +5,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class BluetoothReceiver extends BroadcastReceiver {
     private String pin = "1234";//配对密钥
     private String deviceName = "CAR";
     public BluetoothReceiver() {
     }
-
-//    public void setDeviceName(String namne){
-//        deviceName = namne;
-//    }
 
     //广播接收，当远程蓝牙设备被发现时，会执行回调函数onReceive()
     @Override
@@ -58,6 +57,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
                     abortBroadcast();//如果没有将广播终止，则会出现一个一闪而过的配对框
                     //3.调用setPin方法进行配对
                     boolean ret = BluetoothUtils.setPin(btDevice.getClass(), btDevice, pin);
+                    Toast.makeText(context, "设备连接成功", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

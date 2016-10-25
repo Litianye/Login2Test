@@ -22,10 +22,10 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
+    compile files('libs/AMap_Location_V3.00_20160922.jar')
     compile 'com.android.support:appcompat-v7:24.2.0'
     compile 'com.android.support:design:24.2.0'
     compile 'com.github.thinkcool:circletextimageview:1.0.20151218'
     compile 'com.android.support:support-v4:24.2.0'
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
-    compile files('libs/AMap_Location_V3.00_20160922.jar')
 }

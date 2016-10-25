@@ -2,7 +2,6 @@ package learn.li.login2test.UIPackage;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,6 +20,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import learn.li.login2test.R;
+import learn.li.login2test.blueTooth.testFragment;
 import learn.li.login2test.locationUtils.locationFragment;
 import learn.li.login2test.settingPackage.settingFragment;
 import learn.li.login2test.infoFragment.healthCardActivity;
@@ -28,10 +28,10 @@ import learn.li.login2test.infoFragment.healthCardActivity;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
 
-    private static String account="0", phone="0";
+    private static String name="0", phone="0";
     private locationFragment locationFragment;
     private settingFragment settingFragment;
-    private testFragment testFragment;
+    private learn.li.login2test.blueTooth.testFragment testFragment;
 
     private FragmentManager fragmentManager;
 
@@ -41,9 +41,9 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         Intent intent=getIntent();
-        account = intent.getStringExtra("name");
+        name = intent.getStringExtra("name");
         phone = intent.getStringExtra("phone");
-        Log.i("name", account);
+        Log.i("name", name);
         Log.i("phone", phone);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "您的监护人绑定ID是99558835", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "您的监护人绑定ID是59670160001", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity
 
         TextView mAccount = (TextView) headerView.findViewById(R.id.nav_tv_header_username);
         TextView mEmail = (TextView) headerView.findViewById(R.id.nav_tv_header_userInfo);
-        mAccount.setText(account);
+        mAccount.setText(name);
         mEmail.setText(phone);
 
         //  初始化界面管理器
@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity
 
             Intent intent=new Intent();
 
-            intent.putExtra("name", "李晨曦");
+            intent.putExtra("name", name);
             intent.putExtra("phone", phone);
             //从此activity传到另一Activity
             intent.setClass(MainActivity.this, healthCardActivity.class);
@@ -137,8 +137,6 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_manage) {
             setTabSelection(REQUEST_CODE_SETTING);
         } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
 
         }
 
