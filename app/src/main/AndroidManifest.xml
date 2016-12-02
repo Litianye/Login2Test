@@ -9,8 +9,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
-    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission-sdk-23 android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <!-- 用于进行网络定位 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- 用于访问GPS定位 -->
@@ -48,14 +48,15 @@
             android:name=".UIPackage.MainActivity"
             android:label="@string/title_activity_main"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:hardwareAccelerated="false" />
 
-        <receiver android:name=".blueTooth.BluetoothReceiver">
-            <intent-filter>
-                <action android:name="android.bluetooth.device.action.PAIRING_REQUEST" />
-                <action android:name="android.bluetooth.device.action.FOUND" />
-            </intent-filter>
-        </receiver>
+        <!--<receiver android:name=".blueTooth.BluetoothReceiver">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.bluetooth.device.action.PAIRING_REQUEST" />-->
+                <!--<action android:name="android.bluetooth.device.action.FOUND" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
 
         <service android:name="com.amap.api.location.APSService" />
         //开发者申请的key
@@ -68,7 +69,7 @@
             android:label="@string/title_activity_health_card"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".RegisterActivity"></activity>
+        <activity android:name=".RegisterActivity"/>
     </application>
 
 </manifest>

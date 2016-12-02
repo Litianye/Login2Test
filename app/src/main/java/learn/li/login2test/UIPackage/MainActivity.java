@@ -18,10 +18,20 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
+
+import learn.li.login2test.EEG.EEGFragment;
+import learn.li.login2test.LoginActivity;
+import learn.li.login2test.OkHttpUtil;
 import learn.li.login2test.R;
-import learn.li.login2test.blueTooth.testFragment;
-import learn.li.login2test.locationUtils.locationFragment;
+import learn.li.login2test.dataBase.DataBase;
+import learn.li.login2test.dataBase.DataBaseUtil;
+import learn.li.login2test.RoundIndicator.locationFragment;
 import learn.li.login2test.settingPackage.settingFragment;
 import learn.li.login2test.infoFragment.healthCardActivity;
 
@@ -29,22 +39,22 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
 
     private static String name="0", phone="0";
-    private locationFragment locationFragment;
+//    private locationFragment locationFragment;
     private settingFragment settingFragment;
-    private learn.li.login2test.blueTooth.testFragment testFragment;
+    private EEGFragment eegFragment;
+//    private bluetoothFragment testFragment;
 
     private FragmentManager fragmentManager;
+    private String[] pieces;
+
+    private AMapLocationClient locationClient = null;
+    private AMapLocationClientOption locationOption = new AMapLocationClientOption();
+    private String testUrl = "http://192.168.50.183:8082/Mojito/user/dataBlueTooth.do";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Intent intent=getIntent();
-        name = intent.getStringExtra("name");
-        phone = intent.getStringExtra("phone");
-        Log.i("name", name);
-        Log.i("phone", phone);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -69,14 +79,115 @@ public class MainActivity extends AppCompatActivity
         View headerView = navigationView.getHeaderView(0);
 
         TextView mAccount = (TextView) headerView.findViewById(R.id.nav_tv_header_username);
-        TextView mEmail = (TextView) headerView.findViewById(R.id.nav_tv_header_userInfo);
-        mAccount.setText(name);
-        mEmail.setText(phone);
+        TextView mPhone = (TextView) headerView.findViewById(R.id.nav_tv_header_userInfo);
+        String info = DataBaseUtil.readPhoneAndNameInSql(DataBase.TABLE_NAME_ACCOUNT, this);
+        for (int i=0; i<2; i++){
+            pieces = info.split(";");
+        }
+        mAccount.setText(pieces[0]);
+        mPhone.setText(pieces[1]);
 
         //  初始化界面管理器
         fragmentManager = getFragmentManager();
         //  初始化界面
         setTabSelection(0);
+
+        initLocation();
+    }
+
+    public void sendLocation(){
+        startLocation();
+    }
+
+    /**
+     * 初始化定位
+     */
+    private void initLocation(){
+        //初始化client
+        locationClient = new AMapLocationClient(this.getApplicationContext());
+        //设置定位参数
+        locationClient.setLocationOption(getDefaultOption());
+        // 设置定位监听
+        locationClient.setLocationListener(locationListener);
+    }
+
+    /**
+     * 默认的定位参数
+     */
+    private AMapLocationClientOption getDefaultOption(){
+        AMapLocationClientOption mOption = new AMapLocationClientOption();
+        mOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);//可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
+        mOption.setGpsFirst(false);//可选，设置是否gps优先，只在高精度模式下有效。默认关闭
+        mOption.setHttpTimeOut(30000);//可选，设置网络请求超时时间。默认为30秒。在仅设备模式下无效
+        mOption.setInterval(2000);//可选，设置定位间隔。默认为2秒
+        mOption.setNeedAddress(true);//可选，设置是否返回逆地理地址信息。默认是ture
+        mOption.setOnceLocation(true);//可选，设置是否单次定位。默认是false
+        mOption.setOnceLocationLatest(false);//可选，设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
+        AMapLocationClientOption.setLocationProtocol(AMapLocationClientOption.AMapLocationProtocol.HTTP);//可选， 设置网络请求的协议。可选HTTP或者HTTPS。默认为HTTP
+        return mOption;
+    }
+
+    /**
+     * 定位监听
+     */
+    AMapLocationListener locationListener = new AMapLocationListener() {
+        @Override
+        public void onLocationChanged(AMapLocation loc) {
+            if (null != loc) {
+                //解析定位结果
+                String longitude = loc.getLongitude()+"";//精度
+                String latitude = loc.getLongitude()+"";//纬度
+                Log.i("定位", longitude+";"+latitude);
+                OkHttpUtil.postLocParams(testUrl, longitude, latitude);
+            } else {
+                Log.i("定位失败","loc is null");
+            }
+        }
+    };
+
+    /**
+     * 开始定位
+     *
+     * @since 2.8.0
+     * @author hongming.wang
+     *
+     */
+    private void startLocation(){
+        // 设置定位参数
+        locationClient.setLocationOption(locationOption);
+        // 启动定位
+        locationClient.startLocation();
+    }
+
+    /**
+     * 停止定位
+     *
+     * @since 2.8.0
+     * @author hongming.wang
+     *
+     */
+    private void stopLocation(){
+        // 停止定位
+        locationClient.stopLocation();
+    }
+
+    /**
+     * 销毁定位
+     *
+     * @since 2.8.0
+     * @author hongming.wang
+     *
+     */
+    private void destroyLocation(){
+        if (null != locationClient) {
+            /**
+             * 如果AMapLocationClient是在当前Activity实例化的，
+             * 在Activity的onDestroy中一定要执行AMapLocationClient的onDestroy
+             */
+            locationClient.onDestroy();
+            locationClient = null;
+            locationOption = null;
+        }
     }
 
     @Override
@@ -84,6 +195,8 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+            stopLocation();
+            destroyLocation();
         } else {
             super.onBackPressed();
         }
@@ -105,6 +218,12 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Toast.makeText(getApplicationContext(), "已注销", Toast.LENGTH_SHORT).show();
+            OkHttpUtil.setResult(false);
+            DataBaseUtil.deleteInSql(DataBase.TABLE_NAME_ACCOUNT, this, phone);
+            Intent i = new Intent(MainActivity.this, LoginActivity.class);
+            MainActivity.this.startActivity(i);
+            MainActivity.this.finish();
             return true;
         }
 
@@ -120,24 +239,26 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_camera) {
             setTabSelection(REQUEST_CODE_FIRST);
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-            setTabSelection(REQUEST_CODE_LOCATION);
-        } else if (id == R.id.nav_slideshow) {
+        }
+//        else if (id == R.id.nav_gallery) {
+//            setTabSelection(REQUEST_CODE_LOCATION);
+//        }
+        else if (id == R.id.nav_slideshow) {
 
             Intent intent=new Intent();
-
-            intent.putExtra("name", name);
-            intent.putExtra("phone", phone);
+            String info = DataBaseUtil.readFirstInSql(DataBase.TABLE_NAME_ACCOUNT, this);
+            for (int i=0; i<3; i++) {
+                pieces = info.split(":");
+            }
+            intent.putExtra("name", pieces[0]);
             //从此activity传到另一Activity
             intent.setClass(MainActivity.this, healthCardActivity.class);
             //启动另一个Activity
             MainActivity.this.startActivity(intent);
             MainActivity.this.finish();
-
         } else if (id == R.id.nav_manage) {
             setTabSelection(REQUEST_CODE_SETTING);
         } else if (id == R.id.nav_share) {
-
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -164,22 +285,23 @@ public class MainActivity extends AppCompatActivity
         switch (index) {
             //  设置选中时的图片颜色及字体颜色，若对应的fragment为空则创建，将此时的界面内容交给对应的fragment。若不为空，则将它显示出来。
             case REQUEST_CODE_FIRST:
-                if (testFragment == null){
-                    testFragment = new testFragment();
-                    transaction.add(R.id.id_content, testFragment);
+                if (eegFragment == null){
+                    eegFragment = new EEGFragment();
+//                    testFragment = new bluetoothFragment();
+                    transaction.add(R.id.id_content, eegFragment);
                 } else {
-                    transaction.show(testFragment);
+                    transaction.show(eegFragment);
                 }
                 break;
 
-            case REQUEST_CODE_LOCATION:
-                if (locationFragment == null){
-                    locationFragment = new locationFragment();
-                    transaction.add(R.id.id_content, locationFragment);
-                } else {
-                    transaction.show(locationFragment);
-                }
-                break;
+//            case REQUEST_CODE_LOCATION:
+//                if (locationFragment == null){
+//                    locationFragment = new locationFragment();
+//                    transaction.add(R.id.id_content, locationFragment);
+//                } else {
+//                    transaction.show(locationFragment);
+//                }
+//                break;
 
             case REQUEST_CODE_SETTING:
                 if (settingFragment == null){
@@ -195,13 +317,13 @@ public class MainActivity extends AppCompatActivity
 
     //  将所有的fragment均设为隐藏状态。便于下一步的选择并显示。
     private void hideFragments(FragmentTransaction transaction){
-        if (testFragment != null){
-            transaction.hide(testFragment);
+        if (eegFragment != null){
+            transaction.hide(eegFragment);
         }
 
-        if (locationFragment != null){
-            transaction.hide(locationFragment);
-        }
+//        if (locationFragment != null){
+//            transaction.hide(locationFragment);
+//        }
 
         if (settingFragment != null){
             transaction.hide(

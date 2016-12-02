@@ -4,16 +4,16 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import learn.li.login2test.BlueTooth21.Common;
 
 public class BluetoothReceiver extends BroadcastReceiver {
     private String pin = "1234";//配对密钥
-    private String deviceName = "CAR";
-    public BluetoothReceiver() {
-    }
+    private String deviceName = "DessertEDR";
+    private String deviceMac;
 
     //广播接收，当远程蓝牙设备被发现时，会执行回调函数onReceive()
     @Override
@@ -29,7 +29,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
         if (BluetoothDevice.ACTION_FOUND.equals(action)) {//发现设备
             Log.e("发现设备", "["+btDevice.getName()+"]"+":"+btDevice.getAddress());
 
-            if (btDevice.getName() != null && btDevice.getName().contains(deviceName)) {//如果有同名设备，尝试第一个
+            if (btDevice.getName() != null && btDevice.getName().equals(deviceName)) {//如果有同名设备，尝试第一个
                 if (btDevice.getBondState() == BluetoothDevice.BOND_NONE) {
                     Log.e("QWQ", "attempt to bond:"+"["+btDevice.getName()+"]");
 
@@ -46,7 +46,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
         }else if (action.equals("android.bluetooth.device.action.PAIRING_REQUEST")){
             //再次获得的action，会等于PAIRING_REQUEST
             Log.e("action 2=", action);
-            if (btDevice.getName() != null && btDevice.getName().contains(deviceName)){
+            if (btDevice.getName() != null && btDevice.getName().equals(deviceName)){
                 Log.e("here", "OKOKOK");
                 try {
                     //1.确认配对
@@ -58,6 +58,9 @@ public class BluetoothReceiver extends BroadcastReceiver {
                     //3.调用setPin方法进行配对
                     boolean ret = BluetoothUtils.setPin(btDevice.getClass(), btDevice, pin);
                     Toast.makeText(context, "设备连接成功", Toast.LENGTH_SHORT).show();
+                    if(ret){
+
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -66,4 +69,16 @@ public class BluetoothReceiver extends BroadcastReceiver {
             Log.e("提示","该设备不是目标蓝牙设备");
         }
     }
+
+    private BroadcastReceiver connectDevices = new BroadcastReceiver() {
+
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            Log.d(Common.TAG, "Receiver:" + action);
+            if (action.equals(BluetoothDevice.ACTION_ACL_CONNECTED)) {
+            } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+
+            }
+        }
+    };
 }

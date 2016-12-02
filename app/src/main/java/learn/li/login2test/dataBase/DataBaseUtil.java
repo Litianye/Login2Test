@@ -4,12 +4,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 /**
  * Created by 李天烨 on 2016/9/13.
  */
-public class DataBaseUtil {
+public class DataBaseUtil{
 
     //保存到数据库
     public static void insertInSqltoItem(String tableName, Context context, String attr1, String attr2){
@@ -41,8 +42,40 @@ public class DataBaseUtil {
         Log.i("update","query-->"+type+":"+attr);
     }
 
+    //更新到account数据库
+    public static void updateBirthInsqltoAccount(String tableName, Context context, String birthday){
+        DataBase db = new DataBase(context, tableName);
+        //取得一个只读的数据库对象
+        SQLiteDatabase dbS = db.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DataBase.COLUMN_NAME_BIRTHDAY, birthday);
+        dbS.update(tableName, values, DataBase.COLUMN_NAME_REALNAME, null);
+        Log.i("update","query-->"+birthday+";");
+    }
+
     //保存到数据库
-    public static void insertInSqltoAccount(String tableName, Context context,
+    public static void insertInSqlToAccount(String tableName, Context context,
+                                            String realName, String phone, String password, String email){
+        DataBase db = new DataBase(context, tableName);
+        //取得一个可写的数据库对象
+        SQLiteDatabase dbS = db.getWritableDatabase();
+
+        //创建存放数据的ContentValues对象
+        ContentValues values = new ContentValues();
+        //像ContentValues中存放数据
+        values.put(DataBase.COLUMN_NAME_REALNAME,realName);
+        values.put(DataBase.COLUMN_NAME_PHONE, phone);
+        values.put(DataBase.COLUMN_NAME_PASSWORD, password);
+        values.put(DataBase.COLUMN_NAME_EMAIL, email);
+        //数据库执行插入命令
+        dbS.insert(tableName, null, values);
+
+        Log.i("insert","query-->"+tableName+":"+realName+":"+phone+";"+password+";"+email);
+    }
+
+    //保存到数据库
+    public static void insertBasicInSqlToAccount(String tableName, Context context,
                                             String realName, String phone, String password){
         DataBase db = new DataBase(context, tableName);
         //取得一个可写的数据库对象
@@ -56,26 +89,22 @@ public class DataBaseUtil {
         values.put(DataBase.COLUMN_NAME_PASSWORD, password);
         //数据库执行插入命令
         dbS.insert(tableName, null, values);
-
         Log.i("insert","query-->"+tableName+":"+realName+":"+phone+";"+password);
     }
 
     //查询数据库
-    public static String searchInSql(String tableName, Context context, String account){
-        String password = "";
+    public static String readPhoneAndNameInSql(String tableName, Context context){
+        String phoneNumber = "";
+        String realName = "";
         DataBase db = new DataBase(context, tableName);
         //取得一个可读的数据库对象
         SQLiteDatabase dbS = db.getReadableDatabase();
 
-        //查询并获得游标
-        Cursor c = dbS.query(tableName, new String[]{"account","password"}, "account=?", new String[]{account}, null, null, null, null);
-        //利用游标遍历所有数据对象
-        while(c.moveToNext()){
-            password = c.getString(c.getColumnIndex("password"));
-            //日志打印输出
-            Log.i("search","query-->"+account+":"+password);
-        }
-        return account+":"+password;
+        Cursor c = dbS.query(tableName, null, null, null, null, null, null);//查询并获得游标
+        c.moveToFirst();
+        phoneNumber = c.getString(c.getColumnIndex("phoneNumber"));
+        realName = c.getString(c.getColumnIndex("realName"));
+        return realName+";"+phoneNumber;
     }
 
     //查询数据库第一条
@@ -83,6 +112,8 @@ public class DataBaseUtil {
         String name_out = "";
         String phone_out = "";
         String password_out = "";
+        String birthday_out = "";
+        String id_out ="";
         DataBase db = new DataBase(context, tableName);
         //取得一个可读的数据库对象
         SQLiteDatabase dbS = db.getReadableDatabase();
@@ -90,11 +121,13 @@ public class DataBaseUtil {
 
         Cursor c = dbS.query(tableName, null, null, null, null, null, null);//查询并获得游标
         c.moveToFirst();
+        id_out =c.getString(c.getColumnIndex("_id"));
         name_out = c.getString(c.getColumnIndex("realName"));
         phone_out = c.getString(c.getColumnIndex("phoneNumber"));
         password_out = c.getString(c.getColumnIndex("password"));
+        birthday_out = c.getString(c.getColumnIndex("birthday"));
         //日志打印输出
-        Log.i("readFirst", "query-->" + name_out+":"+ phone_out+":"+ password_out);
+        Log.i("readFirst", "query-->" + id_out +";"+ name_out+":"+ phone_out+":"+ password_out+":"+birthday_out);
         return name_out+":"+ phone_out+":"+ password_out;
     }
 
@@ -104,7 +137,7 @@ public class DataBaseUtil {
         //取得一个可读的数据库对象
         SQLiteDatabase dbS = db.getWritableDatabase();
 
-        dbS.delete(tableName, "account=?", new String[]{account});
+        dbS.delete(tableName, "phoneNumber=?", new String[]{account});
         Log.i("delete","query-->"+account);
     }
 
@@ -123,5 +156,4 @@ public class DataBaseUtil {
             return true;
         }
     }
-
 }

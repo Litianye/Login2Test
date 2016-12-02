@@ -17,16 +17,14 @@
     </string>
 
     <string name="register_name">真实姓名</string>
+    <string name="register_email">邮箱</string>
     <string name="title_activity_main">佑心</string>
     <string name="title_activity_health_card">佑心</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="action_settings">Settings</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="action_settings">注销</string>
 
     <string name="startLocation">开始定位</string>
     <string name="stopLocation">停止定位</string>
@@ -45,4 +43,7 @@
     <string name="location_info_String">循环定位，时间间隔为3s。</string>
 
     <string name="healthCard">*医疗健康卡</string>
+
+    <string name="connect_device">连接设备</string>
+    <string name="device_information">设备信息</string>
 </resources>

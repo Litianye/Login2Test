@@ -85,6 +85,26 @@ public class Utils {
 		sb.append("回调时间: " + formatUTC(System.currentTimeMillis(), "yyyy-MM-dd HH:mm:ss") + "\n");
 		return sb.toString();
 	}
+
+	public synchronized static String getSimpleLocationStr(AMapLocation location){
+		if(null == location){
+			return null;
+		}
+		StringBuffer sb = new StringBuffer();
+		//errCode等于0代表定位成功，其他的为定位失败，具体的可以参照官网定位错误码说明
+		if(location.getErrorCode() == 0){
+			sb.append("定位成功" + "\n");
+			sb.append("经度: " + location.getLongitude() + "\n");
+			sb.append("纬度: " + location.getLatitude() + "\n");
+		} else {
+			//定位失败
+			sb.append("定位失败" + "\n");
+			sb.append("错误码:" + location.getErrorCode() + "\n");
+			sb.append("错误信息:" + location.getErrorInfo() + "\n");
+			sb.append("错误描述:" + location.getLocationDetail() + "\n");
+		}
+		return sb.toString();
+	}
 	
 	private static SimpleDateFormat sdf = null;
 	public synchronized static String formatUTC(long l, String strPattern) {

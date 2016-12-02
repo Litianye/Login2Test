@@ -18,46 +18,17 @@ public class BluetoothUtils {
         return returnValue.booleanValue();
     }
 
-    //与设备解除配对
-    public static boolean removeBond(Class<?> btClass, BluetoothDevice btDevice)
-            throws Exception {
-        Method removeBondMethod = btClass.getMethod("removeBond");
-        Boolean returnValue = (Boolean) removeBondMethod.invoke(btDevice);
-        return returnValue.booleanValue();
-    }
-
     public static boolean setPin(Class<? extends BluetoothDevice> btClass, BluetoothDevice btDevice,
                                  String str) throws Exception {
-        try {
-            Method removeBondMethod = btClass.getDeclaredMethod("setPin",
+        try {Method removeBondMethod = btClass.getDeclaredMethod("setPin",
                     new Class[]{byte[].class});
             Boolean returnValue = (Boolean) removeBondMethod.invoke(btDevice,
                     new Object[]{str.getBytes()});
             Log.e("returnValue", ""+returnValue);
-        }catch (SecurityException e){
-            e.printStackTrace();
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
         }catch (Exception e){
             e.printStackTrace();
         }
         return true;
-    }
-
-    //取消用户输入
-    public static boolean cancelPairingUserInput(Class<?> btClass,BluetoothDevice device)
-            throws Exception{
-        Method createBondMethod = btClass.getMethod("cancelPairingUserInput");
-        Boolean returnValue = (Boolean) createBondMethod.invoke(device);
-        return returnValue.booleanValue();
-    }
-
-    //取消配对
-    public static boolean cancelBondProcess(Class<?> btClass, BluetoothDevice device)
-            throws Exception{
-        Method createBondMethod = btClass.getMethod("cancelBondProcess");
-        Boolean returnValue = (Boolean) createBondMethod.invoke(device);
-        return returnValue.booleanValue();
     }
 
     //确认配对
@@ -65,6 +36,14 @@ public class BluetoothUtils {
                                               boolean isConfirm) throws Exception{
         Method setPairingConfirmation = btClass.getDeclaredMethod("setPairingConfirmation", boolean.class);
         setPairingConfirmation.invoke(device, isConfirm);
+    }
+
+    //与设备解除配对
+    public static boolean removeBond(Class<?> btClass, BluetoothDevice btDevice)
+            throws Exception {
+        Method removeBondMethod = btClass.getMethod("removeBond");
+        Boolean returnValue = (Boolean) removeBondMethod.invoke(btDevice);
+        return returnValue.booleanValue();
     }
 
     public static void printAllInfom(Class clsShow){
@@ -86,6 +65,22 @@ public class BluetoothUtils {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    //取消用户输入
+    public static boolean cancelPairingUserInput(Class<?> btClass,BluetoothDevice device)
+            throws Exception{
+        Method createBondMethod = btClass.getMethod("cancelPairingUserInput");
+        Boolean returnValue = (Boolean) createBondMethod.invoke(device);
+        return returnValue.booleanValue();
+    }
+
+    //取消配对
+    public static boolean cancelBondProcess(Class<?> btClass, BluetoothDevice device)
+            throws Exception{
+        Method createBondMethod = btClass.getMethod("cancelBondProcess");
+        Boolean returnValue = (Boolean) createBondMethod.invoke(device);
+        return returnValue.booleanValue();
     }
 
 }

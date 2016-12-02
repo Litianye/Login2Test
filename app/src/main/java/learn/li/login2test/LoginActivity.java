@@ -33,6 +33,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,12 +73,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private String mName="未知";
 
     private DataBase dataBase;
-    private String realName, phone, password, historyInfo;
+    private String checkNum, historyInfo;
     private String[] pieces;
 
-    private String loginUrl = "http://192.168.50.199:8080/Mojito/user/login.do";
+    private String loginUrl = "http://192.168.50.183:8082/Mojito/user/login.do";
+    private String testUrl = "http://reveur.me:8081";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,9 +115,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             Toast.makeText(getApplicationContext(), "历史账号 "+pieces[0]+" 登陆成功！", Toast.LENGTH_SHORT).show();
             Intent intent=new Intent();
-            //键值对
-            intent.putExtra("name", pieces[0]);
-            intent.putExtra("phone", pieces[1]);
             //从此activity传到另一Activity
             intent.setClass(LoginActivity.this, MainActivity.class);
             //启动另一个Activity
@@ -145,10 +148,28 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     private boolean signIn(String account, String password){
-        if (OkHttpUtil.LoginPostParams(loginUrl, account, password)){
+        String checkInfo = OkHttpUtil.LoginPostParams(loginUrl, account, password);
+        try {
+            JSONTokener jsonInfo = new JSONTokener(checkInfo);
+            Log.i("checkInfo", checkInfo);
+            Log.i("json", jsonInfo.toString());
+            JSONObject info = (JSONObject) jsonInfo.nextValue();
+            checkNum = info.getString("error");
+            if (!info.getString("name").equals("")){
+                mName = info.getString("name");
+            }
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+
+        if (checkNum.equals("0")){
             return true;
+        }else if(checkNum.equals("1")){
+            return false;
+        }else if(checkNum.equals("2")) {
+            return false;
         }else {
-            return true;
+            return false;
         }
     }
 
@@ -345,6 +366,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private final String mPhone;
         private final String mPassword;
 
+
         UserLoginTask(String email, String password) {
             mPhone = email;
             mPassword = password;
@@ -371,11 +393,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             if (success) {
                 Log.i("Login", "OK");
+                DataBaseUtil.insertBasicInSqlToAccount(DataBase.TABLE_NAME_ACCOUNT, LoginActivity.this,
+                        mName, mPhone, mPassword);
+
                 Toast.makeText(getApplicationContext(), "登陆成功！", Toast.LENGTH_SHORT).show();
                 Intent intent=new Intent();
-                //键值对
-                intent.putExtra("name", "未知");
-                intent.putExtra("phone", mPhone);
                 //从此activity传到另一Activity
                 intent.setClass(LoginActivity.this, MainActivity.class);
                 //启动另一个Activity

@@ -3,6 +3,7 @@ package learn.li.login2test;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -18,21 +19,20 @@ import okhttp3.Response;
  */
 
 public class OkHttpUtil {
-    public static boolean result = false;
-    public static String weatherJSON, loginStr ="0", loctionStr;
-    public static OkHttpClient client = new OkHttpClient();
-    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private  static  boolean result = false;
+    private static String weatherJSON,loctionStr, postResult="0", loginStr;
+    private static OkHttpClient client = new OkHttpClient();
+    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     /**
      * Post键值对
      */
 
-    public static boolean LoginPostParams(String url, final String account, final String password) {
-        RequestBody body = new FormBody.Builder().add("phoneNumber", account)
-                                                .add("password", password).build();
-
-        Request request = new Request.Builder().url(url).post(body).build();
-        Log.i("request",request.toString());
+    public static String LoginPostParams(String url, final String account, final String password) {
+        final RequestBody body = new FormBody.Builder().add("phoneNumber", account)
+                .add("password", password).build();
+        final Request request = new Request.Builder().url(url).post(body).build();
+        Log.i("request", request.toString());
         Call call = client.newCall(request);
         call.enqueue(new Callback() {
             @Override
@@ -40,21 +40,52 @@ public class OkHttpUtil {
             }
 
             @Override
-            public void onResponse(Call call, final Response response) throws IOException {
-                loginStr = response.body().string();
-                System.out.println(loginStr+";;");
-                if (response.isSuccessful()) {
+            public void onResponse(Call call, Response response) throws IOException {
+                setLoginStr(response.body().string());
+                Log.i("MSG", loginStr+";;");
+                if (!loginStr.equals("")) {
                     Log.w("toString", response.toString());
-                    Log.i("200", "httpGet OK: " + account+","+password +"," + loginStr);
-                    setResult(true);
+                    Log.i("200", "httpGet OK: " + account + "," + password + "," + loginStr);
                 } else {
-                    Log.i("!200", "httpGet error: " + account+","+password +","+ loginStr);
+                    Log.i("!200", "httpGet error: " + account + "," + password + "," + loginStr);
                     Log.w("toString", response.toString());
-                    setResult(false);
                 }
+
             }
         });
-        return result;
+        String safe = "{\"error\":\"3\"}";
+        if (loginStr == null) {
+            return safe;
+        } else {
+            return loginStr;
+
+        }
+    }
+
+    public static void setLoginStr(String response){
+        loginStr = response;
+    }
+
+    public static String postFromParameters(final String account, final String password) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String url = "http://192.168.50.197:8082/Mojito/user/login.do";
+                    OkHttpClient okHttpClient = new OkHttpClient();
+                    RequestBody formBody = new FormBody.Builder().add("phoneNumber", account)
+                            .add("password", password)
+                            .build();
+                    Request request = new Request.Builder().url(url).post(formBody).build();
+                    okhttp3.Response response = okHttpClient.newCall(request).execute();
+                    postResult = response.body().toString();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        return postResult;
     }
 
     /**
@@ -87,17 +118,14 @@ public class OkHttpUtil {
                 }
             }
         });
-        return result;
+        return false;
     }
 
 
-    public static boolean postLocParams(String url, String account, String devID,
-                                        String loc) {
-        RequestBody body = new FormBody.Builder().add("username", account)
-                .add("devID", devID)
-                .add("location", loc)
+    public static void postLocParams(String url, String longitude, String latitude) {
+        RequestBody body = new FormBody.Builder().add("longitude", longitude)
+                .add("latitude", latitude)
                 .build();
-        Log.i("device", loc);
         Request request = new Request.Builder().url(url).post(body).build();
         Log.i("request",request.toString());
         Call call = client.newCall(request);
@@ -112,19 +140,18 @@ public class OkHttpUtil {
 
                 if (response.isSuccessful()) {
                     setResult(true);
-                    Log.i("200", "httpGet OK: "+response.toString());
+                    Log.i("200", "httpGet OK: ");
                     Log.i("body", response.body().string());
                 } else {
                     setResult(false);
-                    Log.i("!200", "httpGet error: " + response.toString());
+                    Log.i("!200", "httpGet error: ");
                     Log.i("body", response.body().string());
                 }
             }
         });
-        return result;
     }
 
-    public static boolean postLocationParams(String url, final String longitude, final String latitude) {
+    public static void postLocationParam(String url, final String longitude, final String latitude) {
         RequestBody body = new FormBody.Builder().add("x", longitude)
                                                  .add("y", latitude)
                                                  .build();
@@ -151,81 +178,15 @@ public class OkHttpUtil {
                 }
             }
         });
-        return result;
-    }
-
-    /**
-     * POST提交Json数据
-     *
-     * @param url
-     */
-    public static void postJson(String url) {
-        Log.i("点击确认", "点了");
-        String json =  "{\"username\":\"0000\",\"devID\":\"001\",\"temp\":\"32\",\"hum\":\"30\",\"air\":\"150\",\"elec\":\"50\",\"pic\":\"2333\"}";
-        RequestBody body = RequestBody.create(JSON, json);
-        Request request = new Request.Builder().url(url).post(body).build();
-        Call call = client.newCall(request);
-        Log.i("request",request.toString());
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-            }
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String r = response.body().string();
-                if (response.isSuccessful()) {
-                    Log.i("200", "httpGet1 OK: " + r);
-                } else {
-                    Log.i("!200", "httpGet1 error: " + r);
-                }
-            }
-        });
-    }
-
-    public static boolean getResult(){
-        return result;
     }
 
     public static void setResult(boolean num){
         result = num;
     }
 
-    public static String weatherGet() throws IOException {
-        String url = "http://api.yytianqi.com/observe?city=CH070101&key=w5ersf4nbd17ajhf";
-        Request request = new Request.Builder()
-                    .url(url)
-                    .build();
-        Log.i("request", request.toString());
-
-        Call call = client.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-            }
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                weatherJSON = response.body().string();
-                if (response.isSuccessful()) {
-                    Log.i("Weather", "httpGet OK: " + response.toString());
-                    Log.i("body", weatherJSON);
-                } else {
-                    Log.i("Weather", "httpGet error: " + response.toString());
-                    Log.i("body", weatherJSON);
-                }
-            }
-        });
-        while (weatherJSON == null){
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-            }
-        }
-        return weatherJSON;
-    }
-
-    public static String locationGet(String url, String account) {
-        RequestBody body = new FormBody.Builder().add("username", account)
+    public static void dataPostTest(String url, byte[] data) throws UnsupportedEncodingException {
+        String s = new String(data, "GBK");
+        RequestBody body = new FormBody.Builder().add("data", s)
                 .build();
         Request request = new Request.Builder().url(url).post(body).build();
         Log.i("request", request.toString());
@@ -233,6 +194,7 @@ public class OkHttpUtil {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                Log.i("超时：", e.toString());
             }
 
             @Override
@@ -249,39 +211,31 @@ public class OkHttpUtil {
                 }
             }
         });
-        while (loctionStr == null){
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-            }
-        }
-        return loctionStr;
     }
-//    /**
-//     * OkHttp的get请求
-//     * 需要加线程
-//     */
-//    private void weatherGet(final String getUrl) {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    OkHttpClient client = new OkHttpClient();
-//                    Request request = OkHttpHelper.getCacheRequest_NOT_STORE(getUrl);
-//                    Response response = client.newCall(request).execute();
-//                    String r = response.body().string();
-//                    if (response.isSuccessful()) {
-//                        Log.i(TAG, "httpGet1 OK: " + r);
-//                    } else {
-//                        Log.i(TAG, "httpGet1 error: " + r);
-//                    }
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
-//
-//    }
+
+    public static void dataPost(String url, String data) {
+        RequestBody body = new FormBody.Builder().add("data", data)
+                .build();
+        Request request = new Request.Builder().url(url).post(body).build();
+        Log.i("request", request.toString());
+        Call call = client.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.i("超时：", e.toString());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    setResult(true);
+                    Log.i("200", "httpGet OK: ");
+                } else {
+                    setResult(false);
+                    Log.i("!200", "httpGet error: ");
+                }
+            }
+        });
+    }
 
 }

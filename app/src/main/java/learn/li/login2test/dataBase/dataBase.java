@@ -14,9 +14,12 @@ public class DataBase extends SQLiteOpenHelper {
     public static final String COLUMN_NAME_ITEMNAME = "itemName";
     public static final String COLUMN_NAME_INFORMATION = "information";
     public static final String COLUMN_NAME_REALNAME = "realName";
+    public static final String COLUMN_NAME_BIRTHDAY = "birthday";
     public static final String COLUMN_NAME_PHONE = "phoneNumber";
     public static final String COLUMN_NAME_PASSWORD = "password";
+    public static final String COLUMN_NAME_EMAIL = "email";
     public static final String COLUMN_NAME_ID = "_id";
+
 
     public DataBase(Context context, String tableName) {
         super(context, tableName, null, 1);
@@ -33,8 +36,11 @@ public class DataBase extends SQLiteOpenHelper {
 
         Log.i("account","creating");
         String sqlAccount = "create table if not exists " +TABLE_NAME_ACCOUNT+"("+
+                COLUMN_NAME_ID+" integer primary key autoincrement,"+
                 COLUMN_NAME_REALNAME+" varchar(20) not null default \"0\"," +
+                COLUMN_NAME_BIRTHDAY+" varchar(20) not null default \"1970-1-1\"," +
                 COLUMN_NAME_PHONE+" varchar(20) not null default \"0\"," +
+                COLUMN_NAME_EMAIL+" text not null default \"null@com\"," +
                 COLUMN_NAME_PASSWORD+" text not null default \"0\""+")";
         db.execSQL(sqlAccount);
     }

@@ -1,5 +1,6 @@
 package learn.li.login2test.infoFragment;
 
+import android.app.DatePickerDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,6 +18,7 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -33,8 +35,8 @@ public class healthCardActivity extends ListActivity {
     private SimpleCursorAdapter adapter = null;
     private SQLiteDatabase dbRead;
     private String isAllergy;
-    private String name, phone;
-    private TextView tvNameHeader, tvPhone;
+    private String name;
+    private TextView tvNameHeader, tvBirthday;
 
     public static final String[] ITEMNAME = {"医疗状况","过敏反应","药物使用","紧急联系人","备用联系人","体重","身高"};
 
@@ -45,11 +47,11 @@ public class healthCardActivity extends ListActivity {
 
         Intent intent=getIntent();
         name = intent.getStringExtra("name");
-        phone = intent.getStringExtra("phone");
+//        phone = intent.getStringExtra("birthday");
 
         initView();
         tvNameHeader.setText(name);
-        tvPhone.setText(phone);
+//        tvPhone.setText(phone);
 
         db = new DataBase(this, DataBase.TABLE_NAME_LISTITEM);
 
@@ -76,8 +78,24 @@ public class healthCardActivity extends ListActivity {
 
     private void initView() {
         tvNameHeader = (TextView) findViewById(R.id.tv_healthCardName);
-        tvPhone = (TextView) findViewById(R.id.tv_healthCardBirthday);
+        tvBirthday = (TextView) findViewById(R.id.tv_healthCardBirthday);
+
+        tvBirthday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new DatePickerDialog(healthCardActivity.this, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        String temp = String.format("%d-%d-%d",year,monthOfYear+1,dayOfMonth);
+                        tvBirthday.setText(temp);
+                        DataBaseUtil.updateBirthInsqltoAccount(DataBase.TABLE_NAME_ACCOUNT, healthCardActivity.this, temp);
+                    }
+                },1970,1,1).show();
+
+            }
+        });
     }
+
     private void initInfo() {
         String[] initAttr = {"无","无","无","110","120","60kg","170cm"};
 
@@ -177,8 +195,8 @@ public class healthCardActivity extends ListActivity {
     public void onBackPressed(){
         super.onBackPressed();
         Intent intent=new Intent();
-        intent.putExtra("name", name);
-        intent.putExtra("phone", phone);
+//        intent.putExtra("name", name);
+//        intent.putExtra("phone", phone);
         //从此activity传到另一Activity
         intent.setClass(healthCardActivity.this, MainActivity.class);
         //启动另一个Activity

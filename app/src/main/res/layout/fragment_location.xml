@@ -2,41 +2,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="learn.li.login2test.locationUtils.locationFragment"
+    tools:context="learn.li.login2test.RoundIndicator.locationFragment"
     android:orientation="vertical"
     android:weightSum="1">
 
-    <LinearLayout
+    <learn.li.login2test.RoundIndicator.RoundIndicatorView
+        android:id="@+id/rdIndicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/etNum"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/btnRound"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_marginTop="73dp"
-        android:id="@+id/linearLayout"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
-            android:text="@string/location_info_String"
-            android:gravity="center_horizontal"/>
-
-        <Button
-            android:id="@+id/bt_location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/stopLocation" />
-    </LinearLayout>
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/tv_result"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="25dp" />
-
-    </ScrollView>
+        android:text="啊哈"/>
 </LinearLayout>
