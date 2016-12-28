@@ -44,6 +44,7 @@
 
     <string name="healthCard">*医疗健康卡</string>
 
-    <string name="connect_device">连接设备</string>
-    <string name="device_information">设备信息</string>
+    <string name="connecting_device">设备连接中</string>
+    <string name="module_identify">模块已识别</string>
+    <string name="device_connected">设备已连接</string>
 </resources>

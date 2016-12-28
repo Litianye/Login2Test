@@ -19,14 +19,20 @@
         android:id="@+id/rdIndicator"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.55" />
+        android:layout_weight="0.7" />
 
-    <TextView
-        android:id="@+id/tvData"
+    <!--<Button-->
+        <!--android:id="@+id/btnConnect"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="0dp"-->
+        <!--android:text="@string/connect_device"-->
+        <!--android:layout_gravity="bottom" />-->
+
+    <Button
+        android:id="@+id/btnState"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/device_information"
-        android:layout_gravity="bottom"
-        android:layout_weight="0.45"/>
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        android:clickable="false"/>
 
 </LinearLayout>

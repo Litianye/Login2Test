@@ -32,7 +32,7 @@ public class RoundIndicatorView extends View {
     private int sweepInWidth; //内圆的宽度
     private int sweepOutWidth; //外圆的宽度
     private int currentNum=0; //需设置setter，getter供属性动画使用
-    private String[] text ={"较差","中等","良好","优秀","极好"};
+    private String[] text ={" "," "," "," "," "};
     private int[] indicatorColor = {0xffffffff, 0x00ffffff, 0x99ffffff, 0xffffffff};
 
     public int getCurrentNum(){
@@ -76,10 +76,10 @@ public class RoundIndicatorView extends View {
         int color = 0;
         if (value<=maxNum/2){
             fraction = (float)value/(maxNum/2);
-            color = (int)evaluator.evaluate(fraction, 0xffff6347, 0xffff8c00);//由红到橙
+            color = (int)evaluator.evaluate(fraction, 0xff00ced1, 0xff00ced1);//由红到橙
         }else {
             fraction = ((float)value-maxNum/2)/(maxNum/2);
-            color = (int)evaluator.evaluate(fraction, 0xffff8c00, 0xff00ced1);//由橙到蓝
+            color = (int)evaluator.evaluate(fraction, 0xff00ced1, 0xff00ced1);//由橙到蓝
         }
         return color;
     }
@@ -90,7 +90,7 @@ public class RoundIndicatorView extends View {
 
     private void initAttr(AttributeSet attrs){
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.RoundIndicatorView);
-        maxNum = array.getInt(R.styleable.RoundIndicatorView_maxNum, 500);
+        maxNum = array.getInt(R.styleable.RoundIndicatorView_maxNum, 200);
         startAngle = array.getInt(R.styleable.RoundIndicatorView_startAngle, 160);
         sweepAngle = array.getInt(R.styleable.RoundIndicatorView_sweepAngle, 220);
         //内外圈弧的宽度
@@ -228,7 +228,7 @@ public class RoundIndicatorView extends View {
         paint_4.setColor(0xffffffff);
         canvas.drawText(currentNum+"", -paint_4.measureText(currentNum+"")/2, 0, paint_4);
         paint_4.setTextSize(radius/4);
-        String content = "信用";
+        String content = "心跳";
         if (currentNum<maxNum*1/5){
             content += text[0];
         }else if (currentNum >= maxNum*1/5 && currentNum<maxNum*2/5){

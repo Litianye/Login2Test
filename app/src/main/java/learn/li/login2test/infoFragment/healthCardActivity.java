@@ -24,6 +24,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import learn.li.login2test.OkHttpUtil;
 import learn.li.login2test.R;
 import learn.li.login2test.UIPackage.MainActivity;
 import learn.li.login2test.dataBase.DataBase;
@@ -34,11 +35,12 @@ public class healthCardActivity extends ListActivity {
     private DataBase db;
     private SimpleCursorAdapter adapter = null;
     private SQLiteDatabase dbRead;
-    private String isAllergy;
+    private String isAllergy, bloodType;
     private String name;
     private TextView tvNameHeader, tvBirthday;
+    private String healInfoUrl = "http://192.168.0.176:8080/Mojito/user/finishedMR.do";
 
-    public static final String[] ITEMNAME = {"医疗状况","过敏反应","药物使用","紧急联系人","备用联系人","体重","身高"};
+    public static final String[] ITEMNAME = {"医疗状况","医疗记录","药物使用","紧急联系人","备用联系人","体重","身高","过敏反应","血型"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +72,7 @@ public class healthCardActivity extends ListActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                getHealthInfo();
                 Snackbar.make(view, "上传完成", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -97,11 +100,27 @@ public class healthCardActivity extends ListActivity {
     }
 
     private void initInfo() {
-        String[] initAttr = {"无","无","无","110","120","60kg","170cm"};
+        String[] initAttr = {"无","无","无","110","120","60kg","170cm","无","A"};
 
         for (int i=0; i<ITEMNAME.length; i++){
             DataBaseUtil.insertInSqltoItem(DataBase.TABLE_NAME_LISTITEM, this, ITEMNAME[i], initAttr[i]);
         }
+    }
+
+    private void getHealthInfo(){
+        Cursor c = adapter.getCursor();
+        String[] healthInfo=new String[ITEMNAME.length];
+        for (int i=0; i<ITEMNAME.length; i++){
+            c.moveToPosition(i);
+            healthInfo[i]=c.getString(c.getColumnIndex(DataBase.COLUMN_NAME_INFORMATION));
+            Log.i("healInfo", healthInfo[i]);
+        }
+        //          "医疗状况","医疗记录","药物使用","紧急联系人","备用联系人","体重","身高","过敏反应","血型"
+//        String url, String name, String medicalStatus, String medicalNote, String drugUse,
+//                String contactsName1, String contactsNumber1, String contactsName2, String contactNumber2,
+//                String weight, String stature, String irritability, String bloodType
+        OkHttpUtil.healthInfoPost(healInfoUrl, name, healthInfo[0], healthInfo[1], healthInfo[2],
+                "紧急联系人",  healthInfo[3], "备用联系人", healthInfo[4],healthInfo[5], healthInfo[6], healthInfo[7], healthInfo[8]);
     }
 
     private void refreshContactList() {
@@ -124,11 +143,12 @@ public class healthCardActivity extends ListActivity {
         builder.setTitle(title);
         switch (_id){
             case 1:
+            case 2:
             case 3:
                 editText.setInputType(InputType.TYPE_CLASS_TEXT);
                 builder.setView(editText);
                 break;
-            case 2:
+            case 8:
                 builder.setSingleChoiceItems(new String[]{"有", "无"}, -1,
                         new DialogInterface.OnClickListener() {
                             @Override
@@ -151,6 +171,30 @@ public class healthCardActivity extends ListActivity {
                 editText.setInputType(InputType.TYPE_CLASS_NUMBER);
                 builder.setView(editText);
                 break;
+            case 9:
+                builder.setSingleChoiceItems(new String[]{"A", "B", "AB", "O"}, -1,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                switch (i){
+                                    case 0:
+                                        bloodType="A";
+                                        break;
+                                    case 1:
+                                        bloodType="B";
+                                        break;
+                                    case 2:
+                                        bloodType="AB";
+                                        break;
+                                    case 3:
+                                        bloodType="O";
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        });
+                break;
             default:
                 break;
         }
@@ -160,6 +204,7 @@ public class healthCardActivity extends ListActivity {
             public void onClick(DialogInterface dialogInterface, int i) {
                 switch (_id){
                     case 1:
+                    case 2:
                     case 3:
                     case 4:
                     case 5:
@@ -167,7 +212,7 @@ public class healthCardActivity extends ListActivity {
                                 healthCardActivity.this,
                                 editText.getText().toString(), String.valueOf(_id));
                         break;
-                    case 2:
+                    case 8:
                         DataBaseUtil.updateInsqltoItem(DataBase.TABLE_NAME_LISTITEM,
                                 healthCardActivity.this,
                                 isAllergy, String.valueOf(_id));
@@ -175,12 +220,17 @@ public class healthCardActivity extends ListActivity {
                     case 6:
                         DataBaseUtil.updateInsqltoItem(DataBase.TABLE_NAME_LISTITEM,
                                 healthCardActivity.this,
-                                editText.getText().toString()+"kg", String.valueOf(_id));
+                                editText.getText().toString(), String.valueOf(_id));
                         break;
                     case 7:
                         DataBaseUtil.updateInsqltoItem(DataBase.TABLE_NAME_LISTITEM,
                                 healthCardActivity.this,
-                                editText.getText().toString()+"cm", String.valueOf(_id));
+                                editText.getText().toString(), String.valueOf(_id));
+                        break;
+                    case 9:
+                        DataBaseUtil.updateInsqltoItem(DataBase.TABLE_NAME_LISTITEM,
+                                healthCardActivity.this,
+                                bloodType, String.valueOf(_id));
                         break;
                     default:
                         break;
@@ -202,6 +252,7 @@ public class healthCardActivity extends ListActivity {
         //启动另一个Activity
         healthCardActivity.this.startActivity(intent);
         healthCardActivity.this.finish();
+        db.close();
     }
 
 }

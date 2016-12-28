@@ -55,8 +55,8 @@ public class DataBaseUtil{
     }
 
     //保存到数据库
-    public static void insertInSqlToAccount(String tableName, Context context,
-                                            String realName, String phone, String password, String email){
+    public static void insertInSqlToAccount(String tableName, Context context, String realName,
+                                            String phone, String password, String email, String custodyCode){
         DataBase db = new DataBase(context, tableName);
         //取得一个可写的数据库对象
         SQLiteDatabase dbS = db.getWritableDatabase();
@@ -68,10 +68,11 @@ public class DataBaseUtil{
         values.put(DataBase.COLUMN_NAME_PHONE, phone);
         values.put(DataBase.COLUMN_NAME_PASSWORD, password);
         values.put(DataBase.COLUMN_NAME_EMAIL, email);
+        values.put(DataBase.COLUMN_NAME_CUSTODYCODE, custodyCode);
         //数据库执行插入命令
         dbS.insert(tableName, null, values);
 
-        Log.i("insert","query-->"+tableName+":"+realName+":"+phone+";"+password+";"+email);
+        Log.i("insert","query-->"+tableName+":"+realName+":"+phone+";"+password+";"+email+";"+custodyCode);
     }
 
     //保存到数据库
@@ -96,6 +97,7 @@ public class DataBaseUtil{
     public static String readPhoneAndNameInSql(String tableName, Context context){
         String phoneNumber = "";
         String realName = "";
+        String custodyCode = "";
         DataBase db = new DataBase(context, tableName);
         //取得一个可读的数据库对象
         SQLiteDatabase dbS = db.getReadableDatabase();
@@ -104,7 +106,9 @@ public class DataBaseUtil{
         c.moveToFirst();
         phoneNumber = c.getString(c.getColumnIndex("phoneNumber"));
         realName = c.getString(c.getColumnIndex("realName"));
-        return realName+";"+phoneNumber;
+        custodyCode = c.getString(c.getColumnIndex("custodyCode"));
+
+        return realName+";"+phoneNumber+";"+custodyCode;
     }
 
     //查询数据库第一条
@@ -132,13 +136,13 @@ public class DataBaseUtil{
     }
 
     //删除数据
-    public static void deleteInSql(String tableName, Context context, String account){
+    public static void deleteInSql(String tableName, Context context){
         DataBase db = new DataBase(context, tableName);
         //取得一个可读的数据库对象
         SQLiteDatabase dbS = db.getWritableDatabase();
 
-        dbS.delete(tableName, "phoneNumber=?", new String[]{account});
-        Log.i("delete","query-->"+account);
+        dbS.delete(tableName, null, null);
+        Log.i("delete","query-->");
     }
 
     //判断空否

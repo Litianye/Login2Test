@@ -1,6 +1,7 @@
 package learn.li.login2test.EEG;
 
 import android.bluetooth.BluetoothAdapter;
+import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,11 +13,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.neurosky.thinkgear.TGDevice;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
@@ -30,16 +36,17 @@ public class EEGFragment extends Fragment {
     private BluetoothAdapter bluetoothAdapter;
     private TGDevice tgDevice;
     private int subjectContactQuality_last, subjectContactQuality_cnt;
-    private final boolean rawEnable = true;
 
-    private TextView tvData;
-    private Button btnConnect;
+    private Button btnState;
     private MainActivity mainActivity;
+    private int lastHeartRate;
+    private String checkNum;
 
     private boolean isGood = false;
     private RoundIndicatorView roundIndicatorView;
     private String data = "";
-    private String testUrl = "http://192.168.50.183:8082/Mojito/user/dataBlueTooth.do";
+    private String dataUrl = "http://192.168.0.176:8080/Mojito/user/dataBlueTooth.do";
+    private String heartUrl = "http://192.168.0.176:8080/Mojito/user/updateHeartRate.do";
 
     public EEGFragment() {
         // Required empty public constructor
@@ -55,9 +62,7 @@ public class EEGFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_eeg, container, false);
-        tvData = (TextView) view.findViewById(R.id.tvData);
-        tvData.setText("");
-        tvData.append("安卓版本:"+ Integer.valueOf(Build.VERSION.SDK)+"\n");
+        btnState = (Button) view.findViewById(R.id.btnState);
 
         subjectContactQuality_last = -1;/* start with impossible value */
         subjectContactQuality_cnt = 200; /* start over the limit, so it gets reported the 1st time */
@@ -70,8 +75,6 @@ public class EEGFragment extends Fragment {
         }else {
             tgDevice = new TGDevice(bluetoothAdapter, handler);
         }
-
-        tvData.append("NeuroSky: "+TGDevice.version +" "+ TGDevice.build_title +"\n");
 
         roundIndicatorView = (RoundIndicatorView) view.findViewById(R.id.rdIndicator);
         mainActivity = (MainActivity) getActivity();
@@ -89,7 +92,9 @@ public class EEGFragment extends Fragment {
             		 /* now there is something connected,
             		 * time to set the configurations we need
             		 */
-                    tvData.append("模块已识别。\n");
+//                    tvData.append("模块已识别。\n");
+                    Log.i("EEG", "模块已识别。\n");
+                    btnState.setText("模块已识别");
                     tgDevice.setBlinkDetectionEnabled(true);
                     tgDevice.setTaskDifficultyRunContinuous(true);
                     tgDevice.setTaskDifficultyEnable(true);
@@ -105,24 +110,30 @@ public class EEGFragment extends Fragment {
                             Log.i("MSG_STATE_CHANGE", message.arg1+"");
                             break;
                         case TGDevice.STATE_CONNECTING:
-                            tvData.append( "连接中...\n" );
+                            Log.i("EEG", "连接中...\n");
+                            btnState.setText("连接中...");
                             break;
                         case TGDevice.STATE_CONNECTED:
-                            tvData.append( "已连接\n" );
+                            Log.i("EEG", "已连接\n" );
+                            btnState.setText("已连接");
                             tgDevice.start();
                             break;
                         case TGDevice.STATE_NOT_FOUND:
-                            tvData.append( "无法连接到已配对的设备，请重启设备后再次尝试。\n" );
-                            tvData.append( "蓝牙设备须先配对。\n" );
+                            Log.i("EEG", "无法连接到已配对的设备，请重启设备后再次尝试。\n" );
+                            Log.i("EEG", "蓝牙设备须先配对。\n" );
+                            btnState.setText("无法连接");
                             break;
                         case TGDevice.STATE_ERR_NO_DEVICE:
-                            tvData.append( "无已配对蓝牙设备，请配对后再次尝试。\n" );
+                            Log.i("EEG", "无已配对蓝牙设备，请配对后再次尝试。\n");
+                            btnState.setText("无法连接");
                             break;
                         case TGDevice.STATE_ERR_BT_OFF:
-                            tvData.append( "蓝牙未打开，请开启蓝牙后尝试。" );
+                            Log.i("EEG", "蓝牙未打开，请开启蓝牙后尝试。" );
+                            btnState.setText("无法连接");
                             break;
                         case TGDevice.STATE_DISCONNECTED:
-                            tvData.append( "连接断开\n" );
+                            Log.i("EEG", "连接断开\n" );
+                            btnState.setText("连接断开");
                     }/* end switch on msg.arg1 */
                     break;
 
@@ -130,11 +141,13 @@ public class EEGFragment extends Fragment {
                     /* display signal quality when there is a change of state, or every 30 reports (seconds) */
                     if (subjectContactQuality_cnt >=30 || message.arg1 != subjectContactQuality_last){
                         if (message.arg1==0){
-                            tvData.append( "信号质量 佳: " + message.arg1 + "\n" );
+                            Log.i("EEG", message.arg1+"\n" );
                             isGood = false;
+                            Log.i("isGood", String.valueOf(isGood));
                         }else {
-                            tvData.append( "信号质量 差: " + message.arg1 + "\n" );
+                            Log.i("EEG", message.arg1+"\n" );
                             isGood = true;
+                            Log.i("isGood", String.valueOf(isGood));
                         }
 
                         subjectContactQuality_cnt=0;
@@ -150,22 +163,24 @@ public class EEGFragment extends Fragment {
                     }
                     /* Handle raw EEG/EKG data here */
                     if (data.length()>102400){
-//                      byte[] tryData = data.getBytes();
-                        OkHttpUtil.dataPost(testUrl, data);
-//                      OkHttpUtil.dataPostTest(testUrl, tryData);
+                        OkHttpUtil.dataPost(dataUrl, data);
                         data="";
                         Log.i("length", data.length()+"");
+                        OkHttpUtil.heartRatePost(heartUrl, String.valueOf(lastHeartRate));
+                        Log.i("view", "refresh"+lastHeartRate);
                         mainActivity.sendLocation();
+                        btnState.setText(setState(OkHttpUtil.getDataStr()));
                     }
                     break;
 
                 case TGDevice.MSG_BLINK:
-                    tvData.append( "Blink: " + message.arg1 + "\n" );
+//                    tvData.append( "Blink: " + message.arg1 + "\n" );
+                    Log.i("Blink:", message.arg1+"\n" );
                     break;
 
                 case TGDevice.MSG_HEART_RATE:
-                    roundIndicatorView.setCurrentNumAnim(message.arg1);
-                    Log.i("view", "refresh"+message.arg1);
+                    lastHeartRate = message.arg1;
+                    roundIndicatorView.setCurrentNumAnim(lastHeartRate);
                     break;
 
                 default:
@@ -175,13 +190,44 @@ public class EEGFragment extends Fragment {
         }/* end handleMessage() */
     };/* end Handler */
 
-    private byte[] bytes = {1,1,1,1,1,1,};
-    public boolean onKeyDown(int keyCode, KeyEvent event){
-        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN){
-            tgDevice.close();
-            return true;
-        }
-        return getActivity().onKeyDown(keyCode, event);
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        tgDevice.close();
     }
 
+    private String setState(String dateResponse){
+        Log.e("dataStr", dateResponse);
+        try {
+            JSONTokener jsonInfo = new JSONTokener(dateResponse);
+            Log.i("json", jsonInfo.toString());
+            JSONObject info = (JSONObject) jsonInfo.nextValue();
+            checkNum = info.getString("error");
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+        switch (checkNum){
+            case "0":
+                return "身体状况正常";
+            case "1":
+                return "身体状况异常";
+            case "2":
+                mainActivity.soundWarn();
+                return "危险！";
+            default:
+                return "身体状况正常";
+        }
+//        switch (dateResponse){
+//            case "{\"error\":\"0\"}":
+//                return "身体状况正常";
+//            case "{\"error\":\"1\"}":
+//                return "身体状况异常";
+//            case "{\"error\":\"2\"}":
+//                soundPool.load(mainActivity,R.raw.ring,1);
+//                soundPool.play(1,1, 1, 0, 0, 1);
+//                return "危险！";
+//            default:
+//                return "身体状况正常";
+//        }
+    }
 }

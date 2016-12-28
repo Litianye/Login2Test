@@ -1,26 +1,29 @@
 package learn.li.login2test;
 
-import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import learn.li.login2test.dataBase.DataBase;
 import learn.li.login2test.dataBase.DataBaseUtil;
 
 public class RegisterActivity extends AppCompatActivity implements View.OnClickListener{
 
-    private String register = "http://192.168.50.199:8080/Mojito/user/register.do";
+    private String registerUrl = "http://192.168.0.176:8080/Mojito/user/register.do";
 
     private EditText tvRealName, tvPhone, tvPassword, tvEmail ;
     private Button btRegister;
     private String realName, phone, password, email;
+    private String rCheckNum, custodyCode, message;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +50,48 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         switch (view.getId()){
             case R.id.btn_register:
                 if (isCompleted()){
-                    DataBaseUtil.insertInSqlToAccount(DataBase.TABLE_NAME_ACCOUNT,
-                            this, realName, phone, password, email);
-                    Toast.makeText(this, "注册成功", Toast.LENGTH_SHORT).show();
-                    Intent intent=new Intent();
-                    //从此activity传到另一Activity
-                    intent.setClass(RegisterActivity.this, LoginActivity.class);
-                    //启动另一个Activity
-                    RegisterActivity.this.startActivity(intent);
-                    RegisterActivity.this.finish();
+                    String registerInfo = null;
+                    try {
+                        registerInfo = OkHttpUtil.RegisterPostParams(registerUrl,phone, password, realName, email);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        JSONTokener jsonInfo = new JSONTokener(registerInfo);
+                        Log.i("registerInfo", registerInfo);
+                        JSONObject info = (JSONObject) jsonInfo.nextValue();
+                        if (info.getString("custodyCode") != null){
+                            custodyCode = info.getString("custodyCode");
+                        }else if (info.getString("message") != null){
+                            message = info.getString("message");
+                        }
+                        rCheckNum = info.getString("error");
+                        Log.i("rCheckNum", rCheckNum);
+                    } catch (JSONException e){
+                        e.printStackTrace();
+                    }
+                    switch (rCheckNum){
+                        case "0":
+                            DataBaseUtil.insertInSqlToAccount(DataBase.TABLE_NAME_ACCOUNT,
+                                    this, realName, phone, password, email, custodyCode);
+                            Toast.makeText(this, "注册成功", Toast.LENGTH_SHORT).show();
+                            Intent intent=new Intent();
+                            //从此activity传到另一Activity
+                            intent.setClass(RegisterActivity.this, LoginActivity.class);
+                            //启动另一个Activity
+                            RegisterActivity.this.startActivity(intent);
+                            RegisterActivity.this.finish();
+                            break;
+                        case "1":
+                            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                            break;
+                        case "2":
+                            Toast.makeText(this, "服务器内部问题", Toast.LENGTH_SHORT).show();
+                            break;
+                        default:
+                            break;
+                    }
+
                 }
                 break;
 //            case R.id.register_birthday:

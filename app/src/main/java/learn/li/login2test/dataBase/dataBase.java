@@ -18,6 +18,7 @@ public class DataBase extends SQLiteOpenHelper {
     public static final String COLUMN_NAME_PHONE = "phoneNumber";
     public static final String COLUMN_NAME_PASSWORD = "password";
     public static final String COLUMN_NAME_EMAIL = "email";
+    public static final String COLUMN_NAME_CUSTODYCODE = "custodyCode";
     public static final String COLUMN_NAME_ID = "_id";
 
 
@@ -41,6 +42,7 @@ public class DataBase extends SQLiteOpenHelper {
                 COLUMN_NAME_BIRTHDAY+" varchar(20) not null default \"1970-1-1\"," +
                 COLUMN_NAME_PHONE+" varchar(20) not null default \"0\"," +
                 COLUMN_NAME_EMAIL+" text not null default \"null@com\"," +
+                COLUMN_NAME_CUSTODYCODE +" varchar(20) not null default \"00000000000   \"," +
                 COLUMN_NAME_PASSWORD+" text not null default \"0\""+")";
         db.execSQL(sqlAccount);
     }
@@ -49,6 +51,4 @@ public class DataBase extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
 
     }
-
-
 }

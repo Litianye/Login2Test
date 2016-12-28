@@ -4,10 +4,16 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.Cookie;
+import okhttp3.CookieJar;
 import okhttp3.FormBody;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -19,16 +25,33 @@ import okhttp3.Response;
  */
 
 public class OkHttpUtil {
-    private  static  boolean result = false;
-    private static String weatherJSON,loctionStr, postResult="0", loginStr;
-    private static OkHttpClient client = new OkHttpClient();
+
+    private static String loctionStr, dataStr, loginStr, registerStr;
+    private static OkHttpClient client = new OkHttpClient.Builder()
+            .cookieJar(new CookieJar() {
+        private final HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
+
+        @Override
+        public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
+            cookieStore.put(url.host(), cookies);
+        }
+
+        @Override
+        public List<Cookie> loadForRequest(HttpUrl url) {
+            List<Cookie> cookies = cookieStore.get(url.host());
+            return cookies != null ? cookies : new ArrayList<Cookie>();
+        }
+    }).build();
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
+    public void closeClient(){
+
+    }
     /**
-     * Post键值对
+     * Post键值对，登陆
      */
 
-    public static String LoginPostParams(String url, final String account, final String password) {
+    public static String LoginPostParams(String url, final String account, final String password) throws InterruptedException {
         final RequestBody body = new FormBody.Builder().add("phoneNumber", account)
                 .add("password", password).build();
         final Request request = new Request.Builder().url(url).post(body).build();
@@ -37,12 +60,13 @@ public class OkHttpUtil {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                Log.i("超时：", e.toString());
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 setLoginStr(response.body().string());
-                Log.i("MSG", loginStr+";;");
+                Log.i("MSG", loginStr);
                 if (!loginStr.equals("")) {
                     Log.w("toString", response.toString());
                     Log.i("200", "httpGet OK: " + account + "," + password + "," + loginStr);
@@ -53,78 +77,55 @@ public class OkHttpUtil {
 
             }
         });
-        String safe = "{\"error\":\"3\"}";
-        if (loginStr == null) {
-            return safe;
-        } else {
-            return loginStr;
-
+        while (loginStr==null){
+            Thread.sleep(1000);
         }
+        return loginStr;
     }
 
+    /**
+     * Post键值对，注册
+     */
+
+    public static String RegisterPostParams(String url, String phoneNumber, String password,
+                                            String name, String email) throws InterruptedException {
+        RequestBody body = new FormBody.Builder().add("phoneNumber", phoneNumber)
+                .add("password", password)
+                .add("name", name)
+                .add("email", email)
+                .build();
+
+        final Request request = new Request.Builder().url(url).post(body).build();
+        Log.i("request",request.toString());
+        Call call = client.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.i("超时：", e.toString());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                registerStr = response.body().string();
+                if (response.isSuccessful()) {
+                    Log.i("login register 200", "httpGet OK: ");
+                } else {
+                    Log.i("login register !200", "httpGet error: ");
+                }
+            }
+        });
+        while (registerStr == null){
+            Thread.sleep(1000);
+        }
+        return registerStr;
+    }
     public static void setLoginStr(String response){
         loginStr = response;
     }
 
-    public static String postFromParameters(final String account, final String password) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String url = "http://192.168.50.197:8082/Mojito/user/login.do";
-                    OkHttpClient okHttpClient = new OkHttpClient();
-                    RequestBody formBody = new FormBody.Builder().add("phoneNumber", account)
-                            .add("password", password)
-                            .build();
-                    Request request = new Request.Builder().url(url).post(formBody).build();
-                    okhttp3.Response response = okHttpClient.newCall(request).execute();
-                    postResult = response.body().toString();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
-        return postResult;
-    }
-
-    /**
-     * Post键值对
-     */
-
-    public static boolean RegisterPostParams(String url, final String account, final String password) {
-        RequestBody body = new FormBody.Builder().add("phoneNumber", account)
-                .add("password", password).build();
-
-        Request request = new Request.Builder().url(url).post(body).build();
-        Log.i("request",request.toString());
-        Call call = client.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                loginStr = response.body().string();
-                if (response.isSuccessful()) {
-                    Log.i("200", "httpGet OK: " + account+","+password +","+ response.toString());
-                    Log.i("body", loginStr);
-                    setResult(true);
-                } else {
-                    Log.i("!200", "httpGet error: " + account+","+password +","+ response.toString());
-                    Log.i("body", loginStr);
-                    setResult(false);
-                }
-            }
-        });
-        return false;
-    }
-
-
     public static void postLocParams(String url, String longitude, String latitude) {
-        RequestBody body = new FormBody.Builder().add("longitude", longitude)
-                .add("latitude", latitude)
+        RequestBody body = new FormBody.Builder().add("locX", longitude)
+                .add("locY", latitude)
                 .build();
         Request request = new Request.Builder().url(url).post(body).build();
         Log.i("request",request.toString());
@@ -133,63 +134,26 @@ public class OkHttpUtil {
 
             @Override
             public void onFailure(Call call, IOException e) {
+                Log.i("超时：", e.toString());
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
 
                 if (response.isSuccessful()) {
-                    setResult(true);
-                    Log.i("200", "httpGet OK: ");
-                    Log.i("body", response.body().string());
+                    Log.i("location 200", "httpGet OK: ");
                 } else {
-                    setResult(false);
-                    Log.i("!200", "httpGet error: ");
-                    Log.i("body", response.body().string());
+                    Log.i("location !200", "httpGet error: ");
                 }
             }
         });
     }
 
-    public static void postLocationParam(String url, final String longitude, final String latitude) {
-        RequestBody body = new FormBody.Builder().add("x", longitude)
-                                                 .add("y", latitude)
-                                                 .build();
-        Request request = new Request.Builder().url(url).post(body).build();
-        Log.i("request",request.toString());
-        Call call = client.newCall(request);
-        call.enqueue(new Callback() {
-
-            @Override
-            public void onFailure(Call call, IOException e) {
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-
-                if (response.isSuccessful()) {
-                    setResult(true);
-                    Log.i("200", "httpGet OK: "+response.toString());
-                    Log.i("body", response.body().string());
-                } else {
-                    setResult(false);
-                    Log.i("!200", "httpGet error: " + response.toString());
-                    Log.i("body", response.body().string());
-                }
-            }
-        });
-    }
-
-    public static void setResult(boolean num){
-        result = num;
-    }
-
-    public static void dataPostTest(String url, byte[] data) throws UnsupportedEncodingException {
-        String s = new String(data, "GBK");
-        RequestBody body = new FormBody.Builder().add("data", s)
+    public static void heartRatePost(String url, String heartRate) {
+        RequestBody body = new FormBody.Builder().add("heartRate", heartRate)
                 .build();
-        Request request = new Request.Builder().url(url).post(body).build();
-        Log.i("request", request.toString());
+        final Request request = new Request.Builder().url(url).post(body).build();
+        Log.i("request", "dataPost request OK");
         Call call = client.newCall(request);
         call.enqueue(new Callback() {
             @Override
@@ -199,24 +163,60 @@ public class OkHttpUtil {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                loctionStr = response.body().string();
                 if (response.isSuccessful()) {
-                    setResult(true);
-                    Log.i("200", "httpGet OK: " + loctionStr);
-                    Log.i("body", loctionStr);
+                    Log.i("heartRatet_200", "httpGet OK: ");
                 } else {
-                    setResult(false);
-                    Log.i("!200", "httpGet error: " + loctionStr);
-                    Log.i("body", loctionStr);
+
+                    Log.i("heartRate_!200", "httpGet error: ");
                 }
             }
         });
     }
 
-    public static void dataPost(String url, String data) {
+    public static void dataPost(String url, final String data) {
         RequestBody body = new FormBody.Builder().add("data", data)
                 .build();
-        Request request = new Request.Builder().url(url).post(body).build();
+        final Request request = new Request.Builder().url(url).post(body).build();
+        Log.i("request", "dataPost request OK");
+        Call call = client.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.i("超时：", e.toString());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    dataStr = response.body().string();
+                    Log.e("dataStr_response", dataStr);
+                    Log.i("dataPost_200", "httpGet OK: ");
+                } else {
+                    Log.i("dataPost_!200", "httpGet error: ");
+                }
+            }
+        });
+    }
+
+    public static void healthInfoPost(String url,String name, String medicalStatus, String medicalNote, String drugUse,
+                                      String contactsName1, String contactsNumber1, String contactsName2, String contactNumber2,
+                                      String weight, String stature, String irritability, String bloodType) {
+        RequestBody body = new FormBody.Builder()
+//                .add("phoneNumber", phoneNumber)
+                .add("name", name)
+                .add("medicalStatus", medicalStatus)
+                .add("medicalNote", medicalNote)
+                .add("drugUse", drugUse)
+                .add("contactsName1", contactsName1)
+                .add("contactsNumber1", contactsNumber1)
+                .add("contactsName2", contactsName2)
+                .add("contactsNumber2", contactNumber2)
+                .add("weight", weight)
+                .add("stature", stature)
+                .add("irritability", irritability)
+                .add("bloodType", bloodType)
+                .build();
+        final Request request = new Request.Builder().url(url).post(body).build();
         Log.i("request", request.toString());
         Call call = client.newCall(request);
         call.enqueue(new Callback() {
@@ -228,14 +228,19 @@ public class OkHttpUtil {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    setResult(true);
                     Log.i("200", "httpGet OK: ");
                 } else {
-                    setResult(false);
-                    Log.i("!200", "httpGet error: ");
+                    Log.i("!200 httpGet error", response.toString());
                 }
             }
         });
     }
 
+    public static String getDataStr() {
+        if (dataStr != null){
+            return dataStr;
+        }else {
+            return "{\"error\":\"0\"}";
+        }
+    }
 }

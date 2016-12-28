@@ -3,6 +3,8 @@ package learn.li.login2test.UIPackage;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -17,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,42 +34,35 @@ import learn.li.login2test.OkHttpUtil;
 import learn.li.login2test.R;
 import learn.li.login2test.dataBase.DataBase;
 import learn.li.login2test.dataBase.DataBaseUtil;
-import learn.li.login2test.RoundIndicator.locationFragment;
 import learn.li.login2test.settingPackage.settingFragment;
 import learn.li.login2test.infoFragment.healthCardActivity;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
 
-    private static String name="0", phone="0";
+    private static String name="0";
 //    private locationFragment locationFragment;
     private settingFragment settingFragment;
     private EEGFragment eegFragment;
-//    private bluetoothFragment testFragment;
 
     private FragmentManager fragmentManager;
     private String[] pieces;
 
     private AMapLocationClient locationClient = null;
     private AMapLocationClientOption locationOption = new AMapLocationClientOption();
-    private String testUrl = "http://192.168.50.183:8082/Mojito/user/dataBlueTooth.do";
+    private String locUrl = "http://192.168.0.176:8080/Mojito/user/updateLocation.do";
 
+    private SoundPool soundPool;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);//保存屏幕常亮
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "您的监护人绑定ID是59670160001", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -81,17 +77,24 @@ public class MainActivity extends AppCompatActivity
         TextView mAccount = (TextView) headerView.findViewById(R.id.nav_tv_header_username);
         TextView mPhone = (TextView) headerView.findViewById(R.id.nav_tv_header_userInfo);
         String info = DataBaseUtil.readPhoneAndNameInSql(DataBase.TABLE_NAME_ACCOUNT, this);
-        for (int i=0; i<2; i++){
+        for (int i=0; i<3; i++){
             pieces = info.split(";");
         }
         mAccount.setText(pieces[0]);
         mPhone.setText(pieces[1]);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "您的监护人绑定ID是"+pieces[2], Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
 
         //  初始化界面管理器
         fragmentManager = getFragmentManager();
         //  初始化界面
         setTabSelection(0);
-
+        soundPool= new SoundPool(10, AudioManager.STREAM_SYSTEM,5);
         initLocation();
     }
 
@@ -119,7 +122,7 @@ public class MainActivity extends AppCompatActivity
         mOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);//可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
         mOption.setGpsFirst(false);//可选，设置是否gps优先，只在高精度模式下有效。默认关闭
         mOption.setHttpTimeOut(30000);//可选，设置网络请求超时时间。默认为30秒。在仅设备模式下无效
-        mOption.setInterval(2000);//可选，设置定位间隔。默认为2秒
+        mOption.setInterval(15000);//可选，设置定位间隔。默认为15秒
         mOption.setNeedAddress(true);//可选，设置是否返回逆地理地址信息。默认是ture
         mOption.setOnceLocation(true);//可选，设置是否单次定位。默认是false
         mOption.setOnceLocationLatest(false);//可选，设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
@@ -136,9 +139,8 @@ public class MainActivity extends AppCompatActivity
             if (null != loc) {
                 //解析定位结果
                 String longitude = loc.getLongitude()+"";//精度
-                String latitude = loc.getLongitude()+"";//纬度
-                Log.i("定位", longitude+";"+latitude);
-                OkHttpUtil.postLocParams(testUrl, longitude, latitude);
+                String latitude = loc.getLatitude()+"";//纬度
+                OkHttpUtil.postLocParams(locUrl, longitude, latitude);
             } else {
                 Log.i("定位失败","loc is null");
             }
@@ -219,10 +221,11 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Toast.makeText(getApplicationContext(), "已注销", Toast.LENGTH_SHORT).show();
-            OkHttpUtil.setResult(false);
-            DataBaseUtil.deleteInSql(DataBase.TABLE_NAME_ACCOUNT, this, phone);
+            DataBaseUtil.deleteInSql(DataBase.TABLE_NAME_ACCOUNT, this);
+            DataBaseUtil.deleteInSql(DataBase.TABLE_NAME_LISTITEM, this);
             Intent i = new Intent(MainActivity.this, LoginActivity.class);
             MainActivity.this.startActivity(i);
+            eegFragment.onDetach();
             MainActivity.this.finish();
             return true;
         }
@@ -287,7 +290,6 @@ public class MainActivity extends AppCompatActivity
             case REQUEST_CODE_FIRST:
                 if (eegFragment == null){
                     eegFragment = new EEGFragment();
-//                    testFragment = new bluetoothFragment();
                     transaction.add(R.id.id_content, eegFragment);
                 } else {
                     transaction.show(eegFragment);
@@ -329,6 +331,11 @@ public class MainActivity extends AppCompatActivity
             transaction.hide(
                     settingFragment);
         }
+    }
+
+    public void soundWarn(){
+        soundPool.load(this,R.raw.ring,1);
+        soundPool.play(1,1, 1, 0, 0, 1);
     }
 
 }

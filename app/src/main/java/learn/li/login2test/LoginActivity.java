@@ -79,7 +79,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private String checkNum, historyInfo;
     private String[] pieces;
 
-    private String loginUrl = "http://192.168.50.183:8082/Mojito/user/login.do";
+    private String loginUrl = "http://192.168.0.176:8080/Mojito/user/login.do";
     private String testUrl = "http://reveur.me:8081";
 
     @Override
@@ -111,15 +111,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             for (int i=0; i<3; i++) {
                 pieces = historyInfo.split(":");
             }
-            signIn(pieces[1], pieces[2]);
-
-            Toast.makeText(getApplicationContext(), "历史账号 "+pieces[0]+" 登陆成功！", Toast.LENGTH_SHORT).show();
-            Intent intent=new Intent();
-            //从此activity传到另一Activity
-            intent.setClass(LoginActivity.this, MainActivity.class);
-            //启动另一个Activity
-            LoginActivity.this.startActivity(intent);
-            LoginActivity.this.finish();
+            try {
+                if(signIn(pieces[1], pieces[2])){
+                    Toast.makeText(getApplicationContext(), "历史账号 "+pieces[0]+" 登陆成功！", Toast.LENGTH_SHORT).show();
+                    Intent intent=new Intent();
+                    //从此activity传到另一Activity
+                    intent.setClass(LoginActivity.this, MainActivity.class);
+                    //启动另一个Activity
+                    dataBase.close();
+                    LoginActivity.this.startActivity(intent);
+                    LoginActivity.this.finish();
+                }else {
+                    Toast.makeText(getApplicationContext(), "历史账号登陆失败！", Toast.LENGTH_SHORT).show();
+                }
+            } catch (InterruptedException e) {
+                Toast.makeText(getApplicationContext(), "历史账号登陆失败！", Toast.LENGTH_SHORT).show();
+            }
         }
 
         Button mSignInButton = (Button) findViewById(R.id.btn_sign_in);
@@ -147,7 +154,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mProgressView = findViewById(R.id.login_progress);
     }
 
-    private boolean signIn(String account, String password){
+    private boolean signIn(String account, String password) throws InterruptedException {
         String checkInfo = OkHttpUtil.LoginPostParams(loginUrl, account, password);
         try {
             JSONTokener jsonInfo = new JSONTokener(checkInfo);
@@ -155,21 +162,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             Log.i("json", jsonInfo.toString());
             JSONObject info = (JSONObject) jsonInfo.nextValue();
             checkNum = info.getString("error");
-            if (!info.getString("name").equals("")){
+            if (info.getString("name") != null){
                 mName = info.getString("name");
             }
         } catch (JSONException e){
             e.printStackTrace();
         }
-
-        if (checkNum.equals("0")){
-            return true;
-        }else if(checkNum.equals("1")){
-            return false;
-        }else if(checkNum.equals("2")) {
-            return false;
-        }else {
-            return false;
+        switch (checkNum){
+            case "0":
+                return true;
+            case "1":
+            case "2":
+            default:
+                return false;
         }
     }
 
@@ -383,7 +388,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
 
-            return signIn(mPhone,mPassword);
+            try {
+                return signIn(mPhone,mPassword);
+            } catch (InterruptedException e) {
+                return false;
+            }
         }
 
         @Override
@@ -400,6 +409,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 Intent intent=new Intent();
                 //从此activity传到另一Activity
                 intent.setClass(LoginActivity.this, MainActivity.class);
+                dataBase.close();
                 //启动另一个Activity
                 LoginActivity.this.startActivity(intent);
                 LoginActivity.this.finish();
