@@ -45,8 +45,8 @@ public class EEGFragment extends Fragment {
     private boolean isGood = false;
     private RoundIndicatorView roundIndicatorView;
     private String data = "";
-    private String dataUrl = "http://192.168.0.176:8080/Mojito/user/dataBlueTooth.do";
-    private String heartUrl = "http://192.168.0.176:8080/Mojito/user/updateHeartRate.do";
+    private String dataUrl = "http://debug.programmox.com:8388/Mojito/user/dataBlueTooth.do";
+    private String heartUrl = "http://debug.programmox.com:8388/Mojito/user/updateHeartRate.do";
 
     public EEGFragment() {
         // Required empty public constructor

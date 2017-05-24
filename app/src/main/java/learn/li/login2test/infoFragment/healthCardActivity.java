@@ -38,7 +38,7 @@ public class healthCardActivity extends ListActivity {
     private String isAllergy, bloodType;
     private String name;
     private TextView tvNameHeader, tvBirthday;
-    private String healInfoUrl = "http://192.168.0.176:8080/Mojito/user/finishedMR.do";
+    private String healInfoUrl = "http://debug.programmox.com:8388/Mojito/user/finishedMR.do";
 
     public static final String[] ITEMNAME = {"医疗状况","医疗记录","药物使用","紧急联系人","备用联系人","体重","身高","过敏反应","血型"};
 

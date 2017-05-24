@@ -79,7 +79,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private String checkNum, historyInfo;
     private String[] pieces;
 
-    private String loginUrl = "http://192.168.0.176:8080/Mojito/user/login.do";
+    private String loginUrl = "http://debug.programmox.com:8388/Mojito/user/login.do";
     private String testUrl = "http://reveur.me:8081";
 
     @Override

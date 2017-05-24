@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity
 
     private AMapLocationClient locationClient = null;
     private AMapLocationClientOption locationOption = new AMapLocationClientOption();
-    private String locUrl = "http://192.168.0.176:8080/Mojito/user/updateLocation.do";
+    private String locUrl = "http://debug.programmox.com:8388/Mojito/user/updateLocation.do";
 
     private SoundPool soundPool;
     @Override

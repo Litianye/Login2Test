@@ -18,7 +18,7 @@ import learn.li.login2test.dataBase.DataBaseUtil;
 
 public class RegisterActivity extends AppCompatActivity implements View.OnClickListener{
 
-    private String registerUrl = "http://192.168.0.176:8080/Mojito/user/register.do";
+    private String registerUrl = "http://debug.programmox.com:8388/Mojito/user/register.do";
 
     private EditText tvRealName, tvPhone, tvPassword, tvEmail ;
     private Button btRegister;
@@ -49,6 +49,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.btn_register:
+                System.out.println(view.toString());
                 if (isCompleted()){
                     String registerInfo = null;
                     try {
